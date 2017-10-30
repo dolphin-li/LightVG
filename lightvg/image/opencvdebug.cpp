@@ -119,5 +119,9 @@ namespace lvg
 		cv::cvtColor(mat, mat, CV_RGBA2BGRA);
 		cv::imwrite(name, mat);
 	}
+	void waitKey(int t)
+	{
+		cv::waitKey(t);
+	}
 #endif
 }

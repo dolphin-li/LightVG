@@ -12,12 +12,14 @@ int main()
 	mask *= -1;
 	mask += 255;
 
-	tic();
+
 	ConvolutionPyramid conv;
 #if 0
+	tic();
 	conv.blendImage(dst, src, mask);
 #else
 	imread("children.jpg", src);
+	tic();
 	src = src.zeroPadding(1);
 	std::vector<FloatImage> srcChannels;
 	conv.SeparateChannels(srcChannels, src);

@@ -46,6 +46,7 @@ namespace lvg
 			release();
 		}
 
+		// create and fill with zero if not created
 		Image& create(int w, int h)
 		{
 			bool bAlloc = true;
@@ -228,6 +229,7 @@ namespace lvg
 			return *this;
 		}
 
+		// padding by 0
 		Image zeroPadding(int l, int r, int t, int b)const
 		{
 			Image dst;
@@ -244,6 +246,140 @@ namespace lvg
 		Image zeroPadding(int sz)const
 		{
 			return zeroPadding(sz, sz, sz, sz);
+		}
+
+		// padding by boundary values
+		Image boundaryPadding(int l, int r, int t, int b)const
+		{
+			Image dst;
+			dst.create(m_width + l + r, m_height + t + b);
+
+			// middel rows
+			for (int y = 0; y < m_height; y++)
+			{
+				T* dst_y = dst.rowPtr(y + t);
+				const T* src_y = rowPtr(y);
+
+				// left
+				for (int x = 0; x < l; x++)
+				{
+					for (int c = 0; c < Channels; c++)
+						dst_y[c] = src_y[c];
+					dst_y += Channels;
+				}
+
+				// middel
+				memcpy(dst_y, src_y, m_width * Channels * sizeof(T));
+				dst_y += m_width * Channels;
+				src_y += (m_width - 1) * Channels;
+
+				// right
+				for (int x = 0; x < r; x++)
+				{
+					for (int c = 0; c < Channels; c++)
+						dst_y[c] = src_y[c];
+					dst_y += Channels;
+				}
+			}// y
+
+			// top rows
+			for (int y = 0; y < t; y++)
+			{
+				T* dst_y = dst.rowPtr(y);
+				const T* src_y = dst.rowPtr(t);
+				memcpy(dst_y, src_y, dst.m_width * Channels * sizeof(T));
+			} // y
+
+			// bottom rows
+			for (int y = 0; y < b; y++)
+			{
+				T* dst_y = dst.rowPtr(y + m_height + t);
+				const T* src_y = dst.rowPtr(t + m_height - 1);
+				memcpy(dst_y, src_y, dst.m_width * Channels * sizeof(T));
+			} // y
+
+			return dst;
+		}
+
+		Image boundaryPadding(int sz)const
+		{
+			return boundaryPadding(sz, sz, sz, sz);
+		}
+
+		// padding by mirror near-boundary values
+		Image mirrorPadding(int l, int r, int t, int b)const
+		{
+			Image dst;
+			dst.create(m_width + l + r, m_height + t + b);
+
+			const int wCT = m_width * Channels * sizeof(T);
+			const int lC = l * Channels;
+			const int w_lC = (m_width + l) * Channels;
+			const int lCT = lC * sizeof(T);
+			const int rCT = r * Channels * sizeof(T);
+
+			//center
+			for (int y = 0; y < m_height; y++)
+				memcpy(dst.rowPtr(y + t) + lC, rowPtr(y), wCT);
+		
+			//top
+			for (int y = 0; y < t; y++)
+				memcpy(dst.rowPtr(y) + lC, dst.rowPtr(2 * t - y) + lC, wCT);
+
+			//bottom
+			for (int y = m_height + t; y < dst.m_height; y++)
+				memcpy(dst.rowPtr(y) + lC, dst.rowPtr(2 * (m_height + t - 1) - y) + lC, wCT);
+			
+			//left
+			for (int y = t; y < t + m_height; y++)
+			{
+				const T* pSrc = dst.rowPtr(y) + 2 * lC;
+				T* pDst = dst.rowPtr(y);
+				for (int x = 0; x < l; x++)
+				{
+					for (int c = 0; c < Channels; c++)
+						pDst[c] = pSrc[c];
+					pDst += Channels;
+					pSrc -= Channels;
+				} // x
+			} // y
+
+			//right
+			for (int y = t; y < t + m_height; y++)
+			{
+				T* pDst = dst.rowPtr(y) + w_lC;
+				const T* pSrc = pDst - Channels;
+				for (int x = 0; x < r; x++)
+				{
+					for (int c = 0; c < Channels; c++)
+						pDst[c] = pSrc[c];
+					pDst += Channels;
+					pSrc -= Channels;
+				} // x
+			} // y
+
+			//left top
+			for (int y = 0; y < t; y++)
+				memcpy(dst.rowPtr(y), dst.rowPtr(2 * t - y), lCT);
+
+			//left bottom
+			for (int y = t + m_height; y < dst.m_height; y++)
+				memcpy(dst.rowPtr(y), dst.rowPtr(2 * (m_height + t - 1) - y), lCT);
+
+			//right top
+			for (int y = 0; y < t; y++)
+				memcpy(dst.rowPtr(y) + w_lC, dst.rowPtr(2 * t - y) + w_lC, rCT);
+
+			//right bottom
+			for (int y = m_height + t; y < dst.m_height; y++)
+				memcpy(dst.rowPtr(y) + w_lC, dst.rowPtr(2 * (m_height + t - 1) - y) + w_lC, rCT);
+
+			return dst;
+		}
+
+		Image mirrorPadding(int sz)const
+		{
+			return mirrorPadding(sz, sz, sz, sz);
 		}
 
 		Image rowRange(int rowBegin, int rowEnd)

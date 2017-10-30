@@ -21,5 +21,6 @@ namespace lvg
 	void imwrite(std::string name, FloatImage img);
 	void imwrite(std::string name, RgbFloatImage img);
 	void imwrite(std::string name, RgbaFloatImage img);
+	void waitKey(int t = 0);
 #endif
 }

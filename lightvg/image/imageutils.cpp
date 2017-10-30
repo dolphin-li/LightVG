@@ -972,4 +972,88 @@ namespace lvg
 			break;
 		}
 	}
+
+	FloatImage bwdist(const ByteImage& imMask)
+	{
+		FloatImage imDist;
+		imDist.create(imMask.width(), imMask.height());
+		IntImage imTmp;
+		imTmp.create(imMask.width(), imMask.height());
+		const int m = imDist.height(), n = imDist.width();
+		const int inf = m + n;
+		const int maxMN = std::max(m, n);
+
+		//metric function
+		struct EuclideMetric
+		{
+			static int f(int a, int b)
+			{
+				return a*a + b*b;
+			}
+			static int sep(int i, int u, int gi, int gu)
+			{
+				return (u*u - i*i + gu*gu - gi*gi) / (2 * (u - i));
+			}
+		};
+
+		// phase 1
+		for (int x = 0; x<n; x++)
+		{
+			imTmp.rowPtr(0)[x] = (imMask.rowPtr(0)[x] > 128) ? inf : 0;
+
+			// scan 1
+			for (int y = 1; y<m; y++)
+				imTmp.rowPtr(y)[x] = (imMask.rowPtr(y)[x] > 128) ? 1 + imTmp.rowPtr(y - 1)[x] : 0;
+
+			// scan 2
+			for (int y = m - 2; y >= 0; y--)
+				if (imTmp.rowPtr(y + 1)[x] < imTmp.rowPtr(y)[x])
+					imTmp.rowPtr(y)[x] = 1 + imTmp.rowPtr(y + 1)[x];
+		}//end for y
+
+		 // phase 2
+		std::vector<int> s(maxMN), t(maxMN);
+		for (int y = 0; y<m; y++)
+		{
+			int* pTmp = imTmp.rowPtr(y);
+			int q = 0;
+			s[0] = 0;
+			t[0] = 0;
+
+			// scan 3
+			for (int x = 1; x<n; x++)
+			{
+				while (q >= 0 && EuclideMetric::f(t[q] - s[q], pTmp[s[q]]) > EuclideMetric::f(t[q] - x, pTmp[x]))
+					q--;
+				if (q<0)
+				{
+					q = 0;
+					s[0] = x;
+				}
+				else
+				{
+					int const w = 1 + EuclideMetric::sep(s[q], x, pTmp[s[q]], pTmp[x]);
+					if (w < n)
+					{
+						++q;
+						s[q] = x;
+						t[q] = w;
+					}
+				}
+			}//end for x
+
+			 // scan 4
+			for (int x = n - 1; x >= 0; x--)
+			{
+				int const d = EuclideMetric::f(x - s[q], pTmp[s[q]]);
+
+				//output
+				imDist.rowPtr(y)[x] = sqrt((float)d);
+
+				if (x == t[q]) --q;
+			}//end for x
+		}//end for y
+
+		return imDist;
+	}
 }

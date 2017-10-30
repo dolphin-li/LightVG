@@ -20,4 +20,8 @@ namespace lvg
 
 	// separable 2d convolution, corresponding to conv2('same') of matlab
 	void separableConv2(const FloatImage& src, FloatImage& dst, const float* kernel, int nKernel);
+
+	// similar with Matlab's bwdist()
+	// for mask > 128, compute the pixel distances to the boundary (mask < 128)
+	FloatImage bwdist(const ByteImage& imMask);
 } // lvg
