@@ -87,7 +87,7 @@ namespace lvg
 			try
 			{
 				//std::cout << "cached_allocator::allocator(): no free block found; calling cuda::malloc" << std::endl;
-				result = (char*)aligned_calloc(num_bytes, ALIGN_BYTES);
+				result = (char*)aligned_calloc(nAllocate, ALIGN_BYTES);
 			}
 			catch (std::runtime_error &e)
 			{

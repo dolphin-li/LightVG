@@ -270,11 +270,11 @@ namespace lvg
 
 	template<typename T, int N> void max_filter2(T* srcDst, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(W + H + N);
+		CachedBuffer<T> tmpBuffer(std::max(W, H));
 #ifdef LVG_ENABLE_SSE
 		CachedBuffer<__m128> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
-			tmpBuffers_sse.resize(W + H + N);
+			tmpBuffers_sse.resize(std::max(W, H));
 #endif
 
 		// max filtering along x direction
@@ -310,11 +310,11 @@ namespace lvg
 
 	template<typename T, int N> void min_filter2(T* srcDst, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(W + H + N);
+		CachedBuffer<T> tmpBuffer(std::max(W, H));
 #ifdef LVG_ENABLE_SSE
 		CachedBuffer<__m128> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
-			tmpBuffers_sse.resize(W + H + N);
+			tmpBuffers_sse.resize(std::max(W, H));
 #endif
 
 		// min filtering along x direction
@@ -399,11 +399,11 @@ namespace lvg
 
 	template<typename T, int N> void conv2(T* srcDst, const T* kernel, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(W + H + N);
+		CachedBuffer<T> tmpBuffer(std::max(W, H));
 #ifdef LVG_ENABLE_SSE
 		CachedBuffer<__m128> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
-			tmpBuffers_sse.resize(W + H + N);
+			tmpBuffers_sse.resize(std::max(W, H));
 #endif
 
 		// conv along x direction
