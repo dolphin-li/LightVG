@@ -34,9 +34,9 @@ namespace lvg
 			BucketSizes);
 	}
 
-	void *MemPool::aligned_calloc(size_t size, int alignBytes)
+	void *MemPool::aligned_malloc(size_t size, int alignBytes)
 	{
-		void *mem = calloc(size + alignBytes + sizeof(void*), 1);
+		void *mem = malloc(size + alignBytes + sizeof(void*));
 		void **ptr = (void**)((uintptr_t)((char*)mem + alignBytes + sizeof(void*)) & ~(alignBytes - 1));
 		ptr[-1] = mem;
 		return ptr;
@@ -87,7 +87,7 @@ namespace lvg
 			try
 			{
 				//std::cout << "cached_allocator::allocator(): no free block found; calling cuda::malloc" << std::endl;
-				result = (char*)aligned_calloc(nAllocate, ALIGN_BYTES);
+				result = (char*)aligned_malloc(nAllocate, ALIGN_BYTES);
 			}
 			catch (std::runtime_error &e)
 			{
@@ -119,6 +119,7 @@ namespace lvg
 
 	void MemPool::free_all()
 	{
+		std::unique_lock<std::mutex> lock(s_mutex);
 		if (free_blocks.empty() && allocated_blocks.empty())
 			return;
 

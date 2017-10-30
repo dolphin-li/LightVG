@@ -5,7 +5,7 @@
 #include <mutex>
 namespace lvg
 {
-	// cached_allocator: a simple allocator for caching allocation requests
+	// MemPool: a simple allocator for caching allocation requests
 	class MemPool
 	{
 	public:
@@ -13,11 +13,17 @@ namespace lvg
 	public:
 		MemPool() {}
 		~MemPool();
+
+		// allocate aligned memory from the pool
 		static char *allocate(std::ptrdiff_t num_bytes);
+
+		// deallocate from the pool
 		static void deallocate(char* ptr);
-	protected:
+
+		// manually free all memories reserved by the pool
 		static void free_all();
-		static void *aligned_calloc(size_t size, int alignBytes);
+	private:
+		static void *aligned_malloc(size_t size, int alignBytes);
 		static void aligned_free(void *ptr);
 	private:
 		typedef std::multimap<std::ptrdiff_t, char*> free_blocks_type;

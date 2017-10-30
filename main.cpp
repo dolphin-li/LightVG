@@ -18,6 +18,7 @@ int main()
 	tic();
 	conv.blendImage(dst, src, mask);
 #else
+	imread("debug.jpg", src);
 	tic();
 	src = src.zeroPadding(1);
 	std::vector<FloatImage> srcChannels;

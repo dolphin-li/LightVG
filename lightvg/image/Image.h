@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lightvg\common\mathutils.h"
+#include "lightvg\common\mempool.h"
 #include <vector>
 #include <atomic>
 
@@ -18,7 +19,7 @@ namespace lvg
 	{
 	public:
 		enum {
-			ALIGN_BYTES = 4,	// 32; //support 256-bit vector operation
+			ALIGN_BYTES = MemPool::ALIGN_BYTES,
 			ChannelNum = Channels,
 			ALIGN_ELEMENTS = ALIGN_BYTES/sizeof(T),
 		};
@@ -61,7 +62,11 @@ namespace lvg
 			if (bAlloc) {
 				m_refCount = new std::atomic<int>(1);
 				m_stride = (w*Channels * sizeof(T) + ALIGN_BYTES - 1) / ALIGN_BYTES * ALIGN_BYTES;
-				m_data = (T*)aligned_calloc(h*m_stride);
+#ifdef LVG_IMAGE_USE_MEMPOOL
+				m_data = (T*)MemPool::allocate(h*m_stride);
+#else
+				m_data = (T*)aligned_malloc(h*m_stride);
+#endif
 				m_dataAlloc = m_data;
 			}
 			return *this;
@@ -87,7 +92,11 @@ namespace lvg
 				if (oldVal == 1)
 				{
 					if (m_dataAlloc)
+#ifdef LVG_IMAGE_USE_MEMPOOL
+						MemPool::deallocate((char*)m_dataAlloc);
+#else
 						aligned_free(m_dataAlloc);
+#endif
 					delete m_refCount;
 				}
 			}
@@ -233,12 +242,31 @@ namespace lvg
 		{
 			Image dst;
 			dst.create(m_width + l + r, m_height + t + b);
+			
+			// middel rows
 			for (int y = 0; y < m_height; y++)
 			{
-				T* dst_y = dst.rowPtr(y + t) + l * Channels;
+				T* dst_y = dst.rowPtr(y + t);
 				const T* src_y = rowPtr(y);
-				memcpy(dst_y, src_y, m_width * Channels * sizeof(T));
+				memcpy(dst_y + l * Channels, src_y, m_width * Channels * sizeof(T));
+				memset(dst_y, 0, l*Channels * sizeof(T));
+				memset(dst_y + (m_width + l)*Channels, 0, r*Channels * sizeof(T));
 			}// y
+
+			// top rows
+			for (int y = 0; y < t; y++)
+			{
+				T* dst_y = dst.rowPtr(y);
+				memset(dst_y, 0, dst.m_width * Channels * sizeof(T));
+			} // y
+
+			// bottom rows
+			for (int y = 0; y < b; y++)
+			{
+				T* dst_y = dst.rowPtr(y + m_height + t);
+				memset(dst_y, 0, dst.m_width * Channels * sizeof(T));
+			} // y
+
 			return dst;
 		}
 
@@ -460,8 +488,8 @@ namespace lvg
 			return *(VecType*)(rowPtr(p[1]) + p[0] * Channels);
 		}
 	protected:
-		static void *aligned_calloc(int size) {
-			void *mem = calloc(size + ALIGN_BYTES + sizeof(void*), 1);
+		static void *aligned_malloc(int size) {
+			void *mem = malloc(size + ALIGN_BYTES + sizeof(void*));
 			void **ptr = (void**)((uintptr_t)((char*)mem + ALIGN_BYTES + sizeof(void*)) & ~(ALIGN_BYTES - 1));
 			ptr[-1] = mem;
 			return ptr;
