@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="lightvg">
+      <UniqueIdentifier>{60e0c7d1-6395-4402-92b3-624b1df85d1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lightvg\common">
+      <UniqueIdentifier>{e9925cc6-8c3a-4726-962e-53bf58def67f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lightvg\image">
+      <UniqueIdentifier>{ef143348-7aa7-4c49-9764-ae419a4aee68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LightVG\Image\ConvolutionPyramid.cpp">
+      <Filter>lightvg\image</Filter>
+    </ClCompile>
+    <ClCompile Include="lightvg\image\imageutils.cpp">
+      <Filter>lightvg\image</Filter>
+    </ClCompile>
+    <ClCompile Include="lightvg\image\opencvdebug.cpp">
+      <Filter>lightvg\image</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LightVG\Image\ConvolutionPyramid.h">
+      <Filter>lightvg\image</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Image\Image.h">
+      <Filter>lightvg\image</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\LightVG.hpp">
+      <Filter>lightvg</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Common\intrin_neon.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Common\logger.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Common\mathutils.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Common\strutils.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Common\timeutils.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\image\imageutils.h">
+      <Filter>lightvg\image</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\image\opencvdebug.h">
+      <Filter>lightvg\image</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\common\definations.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightVG\Image\convhelper.h">
+      <Filter>lightvg\image</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
