@@ -152,16 +152,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lightvg\common\mempool.cpp" />
     <ClCompile Include="LightVG\Image\ConvolutionPyramid.cpp" />
     <ClCompile Include="lightvg\image\imageutils.cpp" />
     <ClCompile Include="lightvg\image\opencvdebug.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lightvg\common\CachedBuffer.h" />
     <ClInclude Include="lightvg\common\definations.h" />
     <ClInclude Include="LightVG\Common\intrin_neon.h" />
     <ClInclude Include="LightVG\Common\logger.h" />
     <ClInclude Include="LightVG\Common\mathutils.h" />
+    <ClInclude Include="lightvg\common\mempool.h" />
     <ClInclude Include="LightVG\Common\strutils.h" />
     <ClInclude Include="LightVG\Common\timeutils.h" />
     <ClInclude Include="LightVG\Image\convhelper.h" />

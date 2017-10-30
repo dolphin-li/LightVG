@@ -4,6 +4,7 @@
 #include "common\mathutils.h"
 #include "common\strutils.h"
 #include "common\timeutils.h"
+#include "common\CachedBuffer.h"
 
 #include "image\Image.h"
 #include "image\ConvolutionPyramid.h"

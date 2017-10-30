@@ -14,11 +14,10 @@ int main()
 
 
 	ConvolutionPyramid conv;
-#if 0
+#if 1
 	tic();
 	conv.blendImage(dst, src, mask);
 #else
-	imread("children.jpg", src);
 	tic();
 	src = src.zeroPadding(1);
 	std::vector<FloatImage> srcChannels;

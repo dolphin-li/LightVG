@@ -1056,4 +1056,139 @@ namespace lvg
 
 		return imDist;
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	template<class T, int Channels> Image<T, Channels> imresizeBilinear(const Image<T, Channels>& src, int dstW, int dstH)
+	{
+		Image<T, Channels> dst;
+		dst.create(dstW, dstH);
+		const int srcH = src.height();
+		const int srcW = src.width();
+		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
+			return dst;
+		const float scalex = (float)srcW / (float)dstW;
+		const float scaley = (float)srcH / (float)dstH;
+		CachedBuffer<int> tmpBuffer(2 * dstW);
+		int* xofs = (int*)tmpBuffer.data();
+		float* xws = (float*)(xofs + dstW);
+		for (int x = 0; x < dstW; x++)
+		{
+			float fx = std::max(0.f, float(x + 0.5f)*scalex - 0.5f);
+			int sx = int(fx);
+			fx -= sx;
+			if (sx >= srcW - 1)
+			{
+				sx = std::max(0, srcW - 2);
+				fx = 1.f;
+			}
+			xofs[x] = sx;
+			xws[x] = fx;
+		} // x
+
+		for (int y = 0; y < dstH; y++)
+		{
+			float fy = std::max(0.f, float(y + 0.5f)*scaley - 0.5f);
+			int sy = int(fy);
+			fy -= sy;
+			if (sy >= srcH - 1)
+			{
+				sy = std::max(0, srcH - 2);
+				fy = 1.f;
+			}
+			
+			T* pDst_row = dst.rowPtr(y);
+			const T* pSrc0_row = src.rowPtr(sy);
+			const T* pSrc1_row = src.rowPtr(sy + 1);
+			for (int x = 0; x < dstW; x++)
+			{
+				const float fx = xws[x];
+				const int sx = xofs[x];
+				const float a00 = (1 - fx)*(1 - fy);
+				const float a01 = (1 - fx)*fy;
+				const float a10 = fx*(1 - fy);
+				const float a11 = fx*fy;
+				T* pdst = pDst_row + x * Channels;
+				const T* psrc00 = pSrc0_row + sx * Channels;
+				const T* psrc10 = psrc00 + Channels;
+				const T* psrc01 = pSrc1_row + sx * Channels;
+				const T* psrc11 = psrc01 + Channels;
+				for (int c = 0; c < Channels; c++)
+					pdst[c] = T(a00 * psrc00[c] + a01 * psrc01[c] + a11 * psrc11[c] + a10 * psrc10[c]);
+			}//end for x
+		}//end for y
+
+		return dst;
+	}
+	template<class T, int Channels> Image<T, Channels>imresizeNearest(const Image<T, Channels>& src, int dstW, int dstH)
+	{
+		Image<T, Channels> dst;
+		dst.create(dstW, dstH);
+		const int srcH = src.height();
+		const int srcW = src.width();
+		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
+			return dst;
+		const float scalex = (float)srcW / (float)dstW;
+		const float scaley = (float)srcH / (float)dstH;
+
+		CachedBuffer<int> x_ofs(dstW);
+		for (int x = 0; x < dstW; x++)
+			x_ofs[x] = std::min(int(x*scalex), srcW - 1)*Channels;
+
+		for (int y = 0; y < dstH; y++)
+		{
+			T* pDst_row = dst.rowPtr(y);
+			const T* pSrc_row = src.rowPtr(std::min(int(y*scaley), srcH - 1));
+			for (int x = 0; x < dstW; x++)
+			{
+				T* pdst = pDst_row + x * Channels;
+				const T* psrc = pSrc_row + x_ofs[x];
+				for (int c = 0; c < Channels; c++)
+					pdst[c] = psrc[c];
+			}//end for x
+		}//end for y
+
+		return dst;
+	}
+	template<class T, int C> Image<T, C> imresizeT(const Image<T, C>& src, int dstW, int dstH, ResizeMethod m)
+	{
+		switch (m)
+		{
+		case lvg::ResizeLinear:
+			return imresizeBilinear<T, C>(src, dstW, dstH);
+		case lvg::ResizeNearest:
+			return imresizeNearest<T, C>(src, dstW, dstH);
+		default:
+			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
+			throw std::exception();
+		}
+	}
+
+	ByteImage imresize(const ByteImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	IntImage imresize(const IntImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	FloatImage imresize(const FloatImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	RgbImage imresize(const RgbImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	RgbaImage imresize(const RgbaImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	RgbFloatImage imresize(const RgbFloatImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
+	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m)
+	{
+		return imresizeT(src, dstW, dstH, m);
+	}
 }

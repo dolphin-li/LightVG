@@ -32,6 +32,9 @@
     <ClCompile Include="lightvg\image\opencvdebug.cpp">
       <Filter>lightvg\image</Filter>
     </ClCompile>
+    <ClCompile Include="lightvg\common\mempool.cpp">
+      <Filter>lightvg\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LightVG\Image\ConvolutionPyramid.h">
@@ -69,6 +72,12 @@
     </ClInclude>
     <ClInclude Include="LightVG\Image\convhelper.h">
       <Filter>lightvg\image</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\common\mempool.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\common\CachedBuffer.h">
+      <Filter>lightvg\common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

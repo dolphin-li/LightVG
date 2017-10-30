@@ -24,4 +24,17 @@ namespace lvg
 	// similar with Matlab's bwdist()
 	// for mask > 128, compute the pixel distances to the boundary (mask < 128)
 	FloatImage bwdist(const ByteImage& imMask);
+
+	enum ResizeMethod
+	{
+		ResizeNearest,
+		ResizeLinear,
+	};
+	ByteImage imresize(const ByteImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	IntImage imresize(const IntImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	FloatImage imresize(const FloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	RgbImage imresize(const RgbImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	RgbaImage imresize(const RgbaImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	RgbFloatImage imresize(const RgbFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 } // lvg

@@ -123,5 +123,23 @@ namespace lvg
 	{
 		cv::waitKey(t);
 	}
+
+	RgbImage imresize_opencv(RgbImage img, int dstW, int dstH)
+	{
+		cv::Mat mat = cv::Mat(img.rows(), img.cols(), CV_8UC3, img.data(), img.stride()).clone();
+		cv::resize(mat, mat, cv::Size(dstW, dstH));
+
+		RgbImage result;
+		result.create(mat.cols, mat.rows);
+		for (int y = 0; y < result.height(); y++)
+		{
+			for (int x = 0; x < result.width(); x++)
+			{
+				const cv::Vec3b& c = mat.at<cv::Vec3b>(y, x);
+				result.pixel(Point(x, y)) = uchar3(c[0], c[1], c[2]);
+			}
+		}
+		return result;
+	}
 #endif
 }

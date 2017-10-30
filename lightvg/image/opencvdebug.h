@@ -21,6 +21,7 @@ namespace lvg
 	void imwrite(std::string name, FloatImage img);
 	void imwrite(std::string name, RgbFloatImage img);
 	void imwrite(std::string name, RgbaFloatImage img);
+	RgbImage imresize_opencv(RgbImage img, int dstW, int dstH);
 	void waitKey(int t = 0);
 #endif
 }

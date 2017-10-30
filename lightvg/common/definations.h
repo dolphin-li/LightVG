@@ -30,6 +30,11 @@
 #include <android/log.h>
 #endif
 
+#ifdef _WIN32
+#define LVG_ENABLE_SSE
+#include <xmmintrin.h>      // __m128 data type and SSE functions
+#endif
+
 // turn on this macro if you need opencv for debugging
 #define LVG_ENABLE_OPENCV_DEBUG
 
