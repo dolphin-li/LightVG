@@ -54,7 +54,7 @@ namespace lvg
 		free_all();
 	}
 
-	char *MemPool::allocate(std::ptrdiff_t num_bytes, int alignBytes)
+	char *MemPool::allocate(std::ptrdiff_t num_bytes)
 	{
 		std::unique_lock<std::mutex> lock(s_mutex);
 
@@ -87,7 +87,7 @@ namespace lvg
 			try
 			{
 				//std::cout << "cached_allocator::allocator(): no free block found; calling cuda::malloc" << std::endl;
-				result = (char*)aligned_calloc(num_bytes, alignBytes);
+				result = (char*)aligned_calloc(num_bytes, ALIGN_BYTES);
 			}
 			catch (std::runtime_error &e)
 			{

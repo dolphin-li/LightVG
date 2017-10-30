@@ -14,13 +14,13 @@ namespace lvg
 			if (m_data)
 				clear();
 			m_size = size;
-			m_data = (T*)MemPool::allocate(size * sizeof(T), sizeof(T));
+			m_data = (T*)MemPool::allocate(size * sizeof(T));
 		}
 
 		void resize(size_t size)
 		{
 			T* data_old = m_data;
-			m_data = (T*)MemPool::allocate(size * sizeof(T), sizeof(T));
+			m_data = (T*)MemPool::allocate(size * sizeof(T));
 			if (data_old)
 			{
 				memcpy(m_data, data_old, std::min(size, m_size) * sizeof(T));

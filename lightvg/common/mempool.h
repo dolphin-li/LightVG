@@ -9,10 +9,11 @@ namespace lvg
 	class MemPool
 	{
 	public:
+		enum {ALIGN_BYTES = 4};
 	public:
 		MemPool() {}
 		~MemPool();
-		static char *allocate(std::ptrdiff_t num_bytes, int alignBytes);
+		static char *allocate(std::ptrdiff_t num_bytes);
 		static void deallocate(char* ptr);
 	protected:
 		static void free_all();
