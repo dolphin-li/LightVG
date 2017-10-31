@@ -156,6 +156,7 @@
     <ClCompile Include="LightVG\Image\ConvolutionPyramid.cpp" />
     <ClCompile Include="lightvg\image\imageutils.cpp" />
     <ClCompile Include="lightvg\image\opencvdebug.cpp" />
+    <ClCompile Include="lightvg\patchmatch\PatchMatchCompletion.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +174,7 @@
     <ClInclude Include="lightvg\image\imageutils.h" />
     <ClInclude Include="lightvg\image\opencvdebug.h" />
     <ClInclude Include="LightVG\LightVG.hpp" />
+    <ClInclude Include="lightvg\patchmatch\PatchMatchCompletion.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

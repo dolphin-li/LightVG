@@ -11,3 +11,5 @@
 #include "image\convhelper.h"
 #include "image\opencvdebug.h"
 #include "image\imageutils.h"
+
+#include "patchmatch\PatchMatchCompletion.h"

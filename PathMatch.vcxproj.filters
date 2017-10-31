@@ -18,6 +18,9 @@
     <Filter Include="lightvg\image">
       <UniqueIdentifier>{ef143348-7aa7-4c49-9764-ae419a4aee68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lightvg\patchmatch">
+      <UniqueIdentifier>{e903e093-71e3-4cc7-aee5-8c292afc2e73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -34,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="lightvg\common\mempool.cpp">
       <Filter>lightvg\common</Filter>
+    </ClCompile>
+    <ClCompile Include="lightvg\patchmatch\PatchMatchCompletion.cpp">
+      <Filter>lightvg\patchmatch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="lightvg\common\CachedBuffer.h">
       <Filter>lightvg\common</Filter>
+    </ClInclude>
+    <ClInclude Include="lightvg\patchmatch\PatchMatchCompletion.h">
+      <Filter>lightvg\patchmatch</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

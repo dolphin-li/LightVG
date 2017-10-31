@@ -337,7 +337,19 @@ namespace lvg
 		Image mirrorPadding(int l, int r, int t, int b)const
 		{
 			Image dst;
-			dst.create(m_width + l + r, m_height + t + b);
+			mirrorPadding(dst, l, r, t, b);
+			return dst;
+		}
+
+		Image mirrorPadding(int sz)const
+		{
+			return mirrorPadding(sz, sz, sz, sz);
+		}
+
+		void mirrorPadding(Image& dst, int l, int r, int t, int b)const
+		{
+			if(dst.width() != m_width + l + r || dst.height() != m_height + t + b)
+				dst.create(m_width + l + r, m_height + t + b);
 
 			const int wCT = m_width * Channels * sizeof(T);
 			const int lC = l * Channels;
@@ -348,7 +360,7 @@ namespace lvg
 			//center
 			for (int y = 0; y < m_height; y++)
 				memcpy(dst.rowPtr(y + t) + lC, rowPtr(y), wCT);
-		
+
 			//top
 			for (int y = 0; y < t; y++)
 				memcpy(dst.rowPtr(y) + lC, dst.rowPtr(2 * t - y) + lC, wCT);
@@ -356,7 +368,7 @@ namespace lvg
 			//bottom
 			for (int y = m_height + t; y < dst.m_height; y++)
 				memcpy(dst.rowPtr(y) + lC, dst.rowPtr(2 * (m_height + t - 1) - y) + lC, wCT);
-			
+
 			//left
 			for (int y = t; y < t + m_height; y++)
 			{
@@ -371,7 +383,7 @@ namespace lvg
 				} // x
 			} // y
 
-			//right
+			  //right
 			for (int y = t; y < t + m_height; y++)
 			{
 				T* pDst = dst.rowPtr(y) + w_lC;
@@ -385,7 +397,7 @@ namespace lvg
 				} // x
 			} // y
 
-			//left top
+			  //left top
 			for (int y = 0; y < t; y++)
 				memcpy(dst.rowPtr(y), dst.rowPtr(2 * t - y), lCT);
 
@@ -400,42 +412,40 @@ namespace lvg
 			//right bottom
 			for (int y = m_height + t; y < dst.m_height; y++)
 				memcpy(dst.rowPtr(y) + w_lC, dst.rowPtr(2 * (m_height + t - 1) - y) + w_lC, rCT);
-
-			return dst;
 		}
 
-		Image mirrorPadding(int sz)const
+		void mirrorPadding(Image& dst, int sz)const
 		{
-			return mirrorPadding(sz, sz, sz, sz);
+			mirrorPadding(dst, sz, sz, sz, sz);
 		}
 
-		Image rowRange(int rowBegin, int rowEnd)
+		Image rowRange(int rowBegin, int rowEnd)const
 		{
 			return range(rowBegin, rowEnd, 0, m_width);
 		}
 
-		Image row(int row)
+		Image row(int row)const
 		{
 			return rowRange(row, row + 1);
 		}
 
-		Image colRange(int colBegin, int colEnd)
+		Image colRange(int colBegin, int colEnd)const
 		{
 			return range(0, m_height, colBegin, colEnd);
 		}
 
-		Image col(int col)
+		Image col(int col)const
 		{
 			return colRange(col, col + 1);
 		}
 
-		Image range(int rowBegin, int rowEnd, int colBegin, int colEnd)
+		Image range(int rowBegin, int rowEnd, int colBegin, int colEnd)const
 		{
 			Image r;
 			r.m_width = colEnd - colBegin;
 			r.m_height = rowEnd - rowBegin;
 			r.m_stride = m_stride;
-			r.m_data = rowPtr(rowBegin) + colBegin * Channels;
+			r.m_data = (T*)rowPtr(rowBegin) + colBegin * Channels;
 			r.m_dataAlloc = m_dataAlloc;
 			r.m_refCount = m_refCount;
 			if (m_refCount)
@@ -443,7 +453,7 @@ namespace lvg
 			return r;
 		}
 
-		Image range(const Rect& rc)
+		Image range(const Rect& rc)const
 		{
 			return range(rc.top, rc.top + rc.height, rc.left, rc.left + rc.width);
 		}

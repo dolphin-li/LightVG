@@ -21,14 +21,21 @@ namespace lvg
 	// separable 2d convolution, corresponding to conv2('same') of matlab
 	void separableConv2(const FloatImage& src, FloatImage& dst, const float* kernel, int nKernel);
 
+	// max filter, often used for dilation
+	void maxFilter(const FloatImage& src, FloatImage& dst, int nKernel);
+	void maxFilter(const ByteImage& src, ByteImage& dst, int nKernel);
+	void maxFilter(const IntImage& src, IntImage& dst, int nKernel);
+
 	// similar with Matlab's bwdist()
 	// for mask > 128, compute the pixel distances to the boundary (mask < 128)
 	FloatImage bwdist(const ByteImage& imMask);
 
+	// resizing
 	enum ResizeMethod
 	{
 		ResizeNearest,
 		ResizeLinear,
+		ResizeLanczos3,
 	};
 	ByteImage imresize(const ByteImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 	IntImage imresize(const IntImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
@@ -37,4 +44,8 @@ namespace lvg
 	RgbaImage imresize(const RgbaImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 	RgbFloatImage imresize(const RgbFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+
+	// color conversion
+	void sRgb2Lab(const RgbImage& imgRgb, RgbFloatImage& imgLab);
+	void Lab2sRgb(const RgbFloatImage& imgLab, RgbImage& imgRgb);
 } // lvg

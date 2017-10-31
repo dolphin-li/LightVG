@@ -56,8 +56,10 @@ namespace lvg
 		cv::Mat mat = cv::imread(name, 1);
 		if (mat.channels() == 4)
 			cv::cvtColor(mat, mat, CV_BGRA2RGB);
-		else
+		else if(mat.channels() == 3)
 			cv::cvtColor(mat, mat, CV_BGR2RGB);
+		else if (mat.channels() == 1)
+			cv::cvtColor(mat, mat, CV_GRAY2RGB);
 		img.create(mat.cols, mat.rows);
 		for (int y = 0; y < img.height(); y++)
 		{
@@ -73,8 +75,10 @@ namespace lvg
 		cv::Mat mat = cv::imread(name, 1);
 		if (mat.channels() == 4)
 			cv::cvtColor(mat, mat, CV_BGRA2RGBA);
-		else
+		else if (mat.channels() == 3)
 			cv::cvtColor(mat, mat, CV_BGR2RGBA);
+		else if (mat.channels() == 1)
+			cv::cvtColor(mat, mat, CV_GRAY2RGBA);
 		img.create(mat.cols, mat.rows);
 		for (int y = 0; y < img.height(); y++)
 		{

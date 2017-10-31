@@ -973,6 +973,77 @@ namespace lvg
 		}
 	}
 
+	template<class T> void maxFilterT(const Image<T, 1>& src, Image<T, 1>& dst, int nKernel)
+	{
+		if (!dst.sameWith(src))
+			dst = src.clone();
+		else
+			dst = src;
+		switch (nKernel)
+		{
+		case 1:
+			break;
+		case 2:
+			max_filter2<T, 2>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 3:
+			max_filter2<T, 3>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 4:
+			max_filter2<T, 4>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 5:
+			max_filter2<T, 5>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 6:
+			max_filter2<T, 6>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 7:
+			max_filter2<T, 7>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 8:
+			max_filter2<T, 8>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 9:
+			max_filter2<T, 9>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 10:
+			max_filter2<T, 10>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 11:
+			max_filter2<T, 11>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 12:
+			max_filter2<T, 12>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 13:
+			max_filter2<T, 13>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 14:
+			max_filter2<T, 14>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 15:
+			max_filter2<T, 15>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		default:
+			LVG_LOG(LVG_LOG_ERROR, "conv2: non supported kernel size");
+			break;
+		}
+	}
+
+	void maxFilter(const FloatImage& src, FloatImage& dst, int nKernel)
+	{
+		maxFilterT(src, dst, nKernel);
+	}
+	void maxFilter(const ByteImage& src, ByteImage& dst, int nKernel)
+	{
+		maxFilterT(src, dst, nKernel);
+	}
+	void maxFilter(const IntImage& src, IntImage& dst, int nKernel)
+	{
+		maxFilterT(src, dst, nKernel);
+	}
+
 	FloatImage bwdist(const ByteImage& imMask)
 	{
 		FloatImage imDist;
@@ -1058,6 +1129,48 @@ namespace lvg
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
+	/// resize related
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	inline double lanczos3(double x)
+	{
+		double f = 0.0;
+		const static double eps = 2.220446049250313e-16;
+		double pix = MATH_PI*x;
+		f = (sin(pix) * sin(pix / 3.0) + eps) / ((pix * pix) / 3.0 + eps);
+		f = f * (abs(x) < 3);
+		return f;
+	}
+	void Lanczos3KernelIdx(int srcLen, int dstLen, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& indices)
+	{
+		float scale = float(srcLen) / float(dstLen);
+		int kernel_size = 6;
+		if (scale > 1.0) kernel_size = int(kernel_size*scale);
+		weights.resize(dstLen);
+		indices.resize(dstLen);
+		for (int i = 0; i<dstLen; i++)
+		{
+			const float dpos = i*scale - 0.5f * (1.f - scale);
+			int ipos = int(dpos);
+			if (dpos < 0) ipos--;
+			std::vector<float>& w = weights[i];
+			std::vector<int>& id = indices[i];
+			w.resize(kernel_size);
+			id.resize(kernel_size);
+			float sumW = 0.f;
+			const int left = ipos - kernel_size / 2 + 1, right = ipos + kernel_size / 2;
+			for (int j = left; j <= right; j++)
+			{
+				if (scale > 1.f)
+					w[j - left] = float(lanczos3((dpos - j) / scale));
+				else
+					w[j - left] = float(lanczos3(dpos - j));
+				id[j - left] = std::max(0, std::min(srcLen - 1, j));
+				sumW += w[j - left];
+			}
+			for (int j = 0; j<kernel_size; j++)
+				w[j] /= sumW;
+		}
+	}
 	template<class T, int Channels> Image<T, Channels> imresizeBilinear(const Image<T, Channels>& src, int dstW, int dstH)
 	{
 		Image<T, Channels> dst;
@@ -1119,7 +1232,7 @@ namespace lvg
 
 		return dst;
 	}
-	template<class T, int Channels> Image<T, Channels>imresizeNearest(const Image<T, Channels>& src, int dstW, int dstH)
+	template<class T, int Channels> Image<T, Channels> imresizeNearest(const Image<T, Channels>& src, int dstW, int dstH)
 	{
 		Image<T, Channels> dst;
 		dst.create(dstW, dstH);
@@ -1149,6 +1262,75 @@ namespace lvg
 
 		return dst;
 	}
+	template<class T, int Channels> Image<T, Channels> imresizeLanczos3(const Image<T, Channels>& src, int dstW, int dstH)
+	{
+		Image<T, Channels> dst;
+		dst.create(dstW, dstH);
+
+		if (dst.width() == 0 || dst.height() == 0 || src.width() == 0 || src.height() == 0)
+			return dst;
+
+		Image<float, Channels> imTmp;
+		imTmp.create(dstW, src.height());
+		dst.setZero();
+		imTmp.setZero();
+
+		//prepare weights and indices
+		std::vector<std::vector<float>> weightsX, weightsY;
+		std::vector<std::vector<int>> idxX, idxY;
+		Lanczos3KernelIdx(src.width(), dst.width(), weightsX, idxX);
+		Lanczos3KernelIdx(src.height(), dst.height(), weightsY, idxY);
+
+		//x-direction scale
+		for (int y = 0; y<imTmp.height(); y++)
+		{
+			const T* pSrc = src.rowPtr(y);
+			float* pTmp = imTmp.rowPtr(y);
+			for (int x = 0; x<imTmp.width(); x++)
+			{
+				const std::vector<float>& weights = weightsX[x];
+				const std::vector<int>& idx = idxX[x];
+				for (size_t j = 0; j<weights.size(); j++)
+				{
+					const int ij = idx[j];
+					for(int c = 0; c < Channels; c++)
+						pTmp[x*Channels + c] += pSrc[ij*Channels + c] * weights[j];
+				}
+			}//end for x
+		}//end for y
+
+		 //y-direction scale
+		for (int x = 0; x<dstW; x++)
+		{
+			for (int y = 0; y<dstH; y++)
+			{
+				const std::vector<float>& weights = weightsY[y];
+				const std::vector<int>& idx = idxY[y];
+
+				Image<float, Channels>::VecType t = Image<float, Channels>::VecType::Zero();
+				for (size_t j = 0; j<weights.size(); j++)
+				{
+					const Image<float, Channels>::VecType& pixelTmp = imTmp.pixel(Point(x, idx[j]));
+					for(int c = 0; c < Channels; c++)
+						t[c] += pixelTmp[c] * weights[j];
+				}
+				Image<T, Channels>::VecType& pixelDst = dst.pixel(Point(x, y));
+				if (typeid(T) == typeid(uchar))
+				{
+					for (int c = 0; c < Channels; c++)
+						pixelDst[c] = (T)std::max(0.f, std::min(255.f, t[c]));
+				}
+				else
+				{
+					for (int c = 0; c < Channels; c++)
+						pixelDst[c] = (T)t[c];
+				}
+			}//end for y
+		}//end for x
+
+		return dst;
+	}
+	
 	template<class T, int C> Image<T, C> imresizeT(const Image<T, C>& src, int dstW, int dstH, ResizeMethod m)
 	{
 		switch (m)
@@ -1157,6 +1339,8 @@ namespace lvg
 			return imresizeBilinear<T, C>(src, dstW, dstH);
 		case lvg::ResizeNearest:
 			return imresizeNearest<T, C>(src, dstW, dstH);
+		case lvg::ResizeLanczos3:
+			return imresizeLanczos3<T, C>(src, dstW, dstH);
 		default:
 			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
 			throw std::exception();
@@ -1190,5 +1374,305 @@ namespace lvg
 	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m)
 	{
 		return imresizeT(src, dstW, dstH, m);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//RGB <--> Lab
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	static const float D65[] = { 0.950456f, 1.f, 1.088754f };
+
+	static const float sRGB2XYZ_D65[] =
+	{
+		0.412453f, 0.357580f, 0.180423f,
+		0.212671f, 0.715160f, 0.072169f,
+		0.019334f, 0.119193f, 0.950227f
+	};
+
+	static const float XYZ2sRGB_D65[] =
+	{
+		3.240479f, -1.53715f, -0.498535f,
+		-0.969256f, 1.875991f, 0.041556f,
+		0.055648f, -0.204043f, 1.057311f
+	};
+
+	enum { LAB_CBRT_TAB_SIZE = 1024, GAMMA_TAB_SIZE = 1024 };
+	static float LabCbrtTab[LAB_CBRT_TAB_SIZE * 4];
+	static const float LabCbrtTabScale = LAB_CBRT_TAB_SIZE / 1.5f;
+
+	static float sRGBGammaTab[GAMMA_TAB_SIZE * 4], sRGBInvGammaTab[GAMMA_TAB_SIZE * 4];
+	static const float GammaTabScale = (float)GAMMA_TAB_SIZE;
+
+#undef min
+#undef max
+#undef lab_shift
+#define lab_shift xyz_shift
+#define gamma_shift 3
+#define lab_shift2 (lab_shift + gamma_shift)
+
+	/* ************************************************************************** *\
+	Fast cube root by Ken Turkowski
+	(http://www.worldserver.com/turk/computergraphics/papers.html)
+	\* ************************************************************************** */
+	typedef union Cv32suf
+	{
+		int i;
+		unsigned u;
+		float f;
+	}Cv32suf;
+	inline float cubeRoot(float value)
+	{
+		float fr;
+		Cv32suf v, m;
+		int ix, s;
+		int ex, shx;
+
+		v.f = value;
+		ix = v.i & 0x7fffffff;
+		s = v.i & 0x80000000;
+		ex = (ix >> 23) - 127;
+		shx = ex % 3;
+		shx -= shx >= 0 ? 3 : 0;
+		ex = (ex - shx) / 3; /* exponent of cube root */
+		v.i = (ix & ((1 << 23) - 1)) | ((shx + 127) << 23);
+		fr = v.f;
+
+		/* 0.125 <= fr < 1.0 */
+		/* Use quartic rational polynomial with error < 2^(-24) */
+		fr = (float)(((((45.2548339756803022511987494 * fr +
+			192.2798368355061050458134625) * fr +
+			119.1654824285581628956914143) * fr +
+			13.43250139086239872172837314) * fr +
+			0.1636161226585754240958355063) /
+			((((14.80884093219134573786480845 * fr +
+				151.9714051044435648658557668) * fr +
+				168.5254414101568283957668343) * fr +
+				33.9905941350215598754191872) * fr +
+				1.0));
+
+		/* fr *= 2^ex * sign */
+		m.f = value;
+		v.f = fr;
+		v.i = (v.i + (ex << 23) + s) & (m.i * 2 != 0 ? -1 : 0);
+		return v.f;
+	}
+	// computes cubic spline coefficients for a function: (xi=i, yi=f[i]), i=0..n
+	template<typename _Tp> static void splineBuild(const _Tp* f, int n, _Tp* tab)
+	{
+		_Tp cn = 0;
+		int i;
+		tab[0] = tab[1] = (_Tp)0;
+
+		for (i = 1; i < n - 1; i++)
+		{
+			_Tp t = 3 * (f[i + 1] - 2 * f[i] + f[i - 1]);
+			_Tp l = 1 / (4 - tab[(i - 1) * 4]);
+			tab[i * 4] = l; tab[i * 4 + 1] = (t - tab[(i - 1) * 4 + 1])*l;
+		}
+
+		for (i = n - 1; i >= 0; i--)
+		{
+			_Tp c = tab[i * 4 + 1] - tab[i * 4] * cn;
+			_Tp b = f[i + 1] - f[i] - (cn + c * 2)*(_Tp)0.3333333333333333;
+			_Tp d = (cn - c)*(_Tp)0.3333333333333333;
+			tab[i * 4] = f[i]; tab[i * 4 + 1] = b;
+			tab[i * 4 + 2] = c; tab[i * 4 + 3] = d;
+			cn = c;
+		}
+	}
+	// interpolates value of a function at x, 0 <= x <= n using a cubic spline.
+	template<typename _Tp> static inline _Tp splineInterpolate(_Tp x, const _Tp* tab, int n)
+	{
+		int ix = (int)std::floor(x);
+		ix = std::min(std::max(ix, 0), n - 1);
+		x -= ix;
+		tab += ix * 4;
+		return ((tab[3] * x + tab[2])*x + tab[1])*x + tab[0];
+	}
+
+	static void initLabTabs()
+	{
+		static bool initialized = false;
+		if (!initialized)
+		{
+			float f[LAB_CBRT_TAB_SIZE + 1], g[GAMMA_TAB_SIZE + 1], ig[GAMMA_TAB_SIZE + 1], scale = 1.f / LabCbrtTabScale;
+			int i;
+			for (i = 0; i <= LAB_CBRT_TAB_SIZE; i++)
+			{
+				float x = i*scale;
+				f[i] = x < 0.008856f ? x*7.787f + 0.13793103448275862f : cubeRoot(x);
+			}
+			splineBuild(f, LAB_CBRT_TAB_SIZE, LabCbrtTab);
+
+			scale = 1.f / GammaTabScale;
+			for (i = 0; i <= GAMMA_TAB_SIZE; i++)
+			{
+				float x = i*scale;
+				g[i] = x <= 0.04045f ? x*(1.f / 12.92f) : (float)pow((double)(x + 0.055)*(1. / 1.055), 2.4);
+				ig[i] = x <= 0.0031308 ? x*12.92f : (float)(1.055*pow((double)x, 1. / 2.4) - 0.055);
+			}
+			splineBuild(g, GAMMA_TAB_SIZE, sRGBGammaTab);
+			splineBuild(ig, GAMMA_TAB_SIZE, sRGBInvGammaTab);
+			initialized = true;
+		}
+	}
+
+	struct RGB2Lab_f
+	{
+		typedef float channel_type;
+
+		RGB2Lab_f(int _srccn, int blueIdx, const float* _coeffs,
+			const float* _whitept, bool _srgb)
+			: srccn(_srccn), srgb(_srgb)
+		{
+			volatile int _3 = 3;
+			initLabTabs();
+
+			if (!_coeffs) _coeffs = sRGB2XYZ_D65;
+			if (!_whitept) _whitept = D65;
+			float scale[] = { LabCbrtTabScale / _whitept[0], LabCbrtTabScale, LabCbrtTabScale / _whitept[2] };
+
+			for (int i = 0; i < _3; i++)
+			{
+				coeffs[i * 3 + (blueIdx ^ 2)] = _coeffs[i * 3] * scale[i];
+				coeffs[i * 3 + 1] = _coeffs[i * 3 + 1] * scale[i];
+				coeffs[i * 3 + blueIdx] = _coeffs[i * 3 + 2] * scale[i];
+				assert(coeffs[i * 3] >= 0 && coeffs[i * 3 + 1] >= 0 && coeffs[i * 3 + 2] >= 0 &&
+					coeffs[i * 3] + coeffs[i * 3 + 1] + coeffs[i * 3 + 2] < 1.5f*LabCbrtTabScale);
+			}
+		}
+
+		void operator()(const uchar* src, float* dst, int n) const
+		{
+			int i, scn = srccn;
+			float gscale = GammaTabScale;
+			const float* gammaTab = srgb ? sRGBGammaTab : 0;
+			const static float inv255 = 1.f / 255.f;
+			float C0 = coeffs[0], C1 = coeffs[1], C2 = coeffs[2],
+				C3 = coeffs[3], C4 = coeffs[4], C5 = coeffs[5],
+				C6 = coeffs[6], C7 = coeffs[7], C8 = coeffs[8];
+			n *= 3;
+
+			for (i = 0; i < n; i += 3, src += scn)
+			{
+				float R = src[0], G = src[1], B = src[2];
+				R *= inv255; G *= inv255; B *= inv255;
+				if (gammaTab)
+				{
+					R = splineInterpolate(R*gscale, gammaTab, GAMMA_TAB_SIZE);
+					G = splineInterpolate(G*gscale, gammaTab, GAMMA_TAB_SIZE);
+					B = splineInterpolate(B*gscale, gammaTab, GAMMA_TAB_SIZE);
+				}
+				float fX = splineInterpolate(R*C0 + G*C1 + B*C2, LabCbrtTab, LAB_CBRT_TAB_SIZE) / 1.f;
+				float fY = splineInterpolate(R*C3 + G*C4 + B*C5, LabCbrtTab, LAB_CBRT_TAB_SIZE) / 1.f;
+				float fZ = splineInterpolate(R*C6 + G*C7 + B*C8, LabCbrtTab, LAB_CBRT_TAB_SIZE) / 1.f;
+
+				float L = 116.f*fY - 16.f;
+				float a = 500.f*(fX - fY);
+				float b = 200.f*(fY - fZ);
+
+				dst[i] = L; dst[i + 1] = a; dst[i + 2] = b;
+			}
+		}
+
+		int srccn;
+		float coeffs[9];
+		bool srgb;
+	};
+
+	struct Lab2RGB_f
+	{
+		typedef float channel_type;
+
+		Lab2RGB_f(int _dstcn, int blueIdx, const float* _coeffs,
+			const float* _whitept, bool _srgb)
+			: dstcn(_dstcn), srgb(_srgb)
+		{
+			initLabTabs();
+
+			if (!_coeffs) _coeffs = XYZ2sRGB_D65;
+			if (!_whitept) _whitept = D65;
+
+			for (int i = 0; i < 3; i++)
+			{
+				coeffs[i + (blueIdx ^ 2) * 3] = _coeffs[i] * _whitept[i];
+				coeffs[i + 3] = _coeffs[i + 3] * _whitept[i];
+				coeffs[i + blueIdx * 3] = _coeffs[i + 6] * _whitept[i];
+			}
+		}
+
+		void operator()(const float* src, uchar* dst, int n) const
+		{
+			int i, dcn = dstcn;
+			const float* gammaTab = srgb ? sRGBInvGammaTab : 0;
+			float gscale = GammaTabScale;
+			float C0 = coeffs[0], C1 = coeffs[1], C2 = coeffs[2],
+				C3 = coeffs[3], C4 = coeffs[4], C5 = coeffs[5],
+				C6 = coeffs[6], C7 = coeffs[7], C8 = coeffs[8];
+			n *= 3;
+
+			for (i = 0; i < n; i += 3, dst += dcn)
+			{
+				float L = src[i], a = src[i + 1], b = src[i + 2];
+				float Y = (L + 16.f)*(1.f / 116.f);
+				float X = (Y + a*0.002f);
+				float Z = (Y - b*0.005f);
+				Y = Y*Y*Y;
+				X = X*X*X;
+				Z = Z*Z*Z;
+
+				float R = X*C0 + Y*C1 + Z*C2;
+				float G = X*C3 + Y*C4 + Z*C5;
+				float B = X*C6 + Y*C7 + Z*C8;
+
+				if (gammaTab)
+				{
+					R = splineInterpolate(R*gscale, gammaTab, GAMMA_TAB_SIZE);
+					G = splineInterpolate(G*gscale, gammaTab, GAMMA_TAB_SIZE);
+					B = splineInterpolate(B*gscale, gammaTab, GAMMA_TAB_SIZE);
+				}
+
+				dst[0] = (uchar)std::min(255.f, std::max(0.f, R*255.f + 0.5f));
+				dst[1] = (uchar)std::min(255.f, std::max(0.f, G*255.f + 0.5f));
+				dst[2] = (uchar)std::min(255.f, std::max(0.f, B*255.f + 0.5f));
+			}
+		}
+
+		int dstcn;
+		float coeffs[9];
+		bool srgb;
+	};
+
+	void sRgb2Lab(const RgbImage& imgRgb, RgbFloatImage& imgLab)
+	{
+		if(imgLab.width() != imgRgb.width() || imgLab.height() != imgRgb.height())
+			imgLab.create(imgRgb.width(), imgRgb.height());
+
+		RGB2Lab_f converter(imgRgb.channels(), 0, NULL, NULL, true);
+
+		const int nWidth = imgRgb.width();
+		const int nHeight = imgRgb.height();
+
+#ifdef ENABLE_OPENMP
+#pragma omp parallel for
+#endif
+		for (int y = 0; y<nHeight; y++)
+			converter((const uchar*)imgRgb.rowPtr(y), (float*)imgLab.rowPtr(y), nWidth);
+	}
+
+	void Lab2sRgb(const RgbFloatImage& imgLab, RgbImage& imgRgb)
+	{
+		if (imgLab.width() != imgRgb.width() || imgLab.height() != imgRgb.height())
+			imgRgb.create(imgLab.width(), imgLab.height());
+
+		Lab2RGB_f converter(imgRgb.channels(), 0, NULL, NULL, true);
+
+		const int nWidth = imgRgb.width();
+		const int nHeight = imgRgb.height();
+
+#pragma omp parallel for
+		for (int y = 0; y<nHeight; y++)
+		{
+			converter((const float*)imgLab.rowPtr(y), (uchar*)imgRgb.rowPtr(y), nWidth);
+		}
 	}
 }

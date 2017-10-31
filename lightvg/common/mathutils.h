@@ -75,15 +75,19 @@ namespace lvg
 		Rect inflate(int xl, int xr, int yl, int yr)const
 		{
 			Rect r;
-			r.left -= xl;
-			r.top -= yl;
-			r.width += xl + xr;
-			r.height += yl + yr;
+			r.left = left - xl;
+			r.top = top - yl;
+			r.width = width + xl + xr;
+			r.height = height + yl + yr;
 			return r;
 		}
 		Rect inflate(int v)const
 		{
 			return inflate(v, v, v, v);
+		}
+		Rect inflate(int w, int h)const
+		{
+			return inflate(w, w, h, h);
 		}
 		Rect intersect(const Rect& other)const
 		{
@@ -92,8 +96,8 @@ namespace lvg
 			Rect result;
 			result.left = std::max(left, other.left);
 			result.top = std::max(top, other.top);
-			result.width = std::max(0, r - left);
-			result.height = std::max(0, b - top);
+			result.width = std::max(0, r - result.left);
+			result.height = std::max(0, b - result.top);
 			return result;
 		}
 	};
