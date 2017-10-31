@@ -11,6 +11,7 @@
 #define INFLATION_RATIO 3	//size of contex around the hole
 #define IS_HOLE(val) ((val) > 128)
 #define IS_NOT_HOLE(val) (!IS_HOLE(val))
+//#define VOTING_ENABLE_MEANSHIFT
 
 namespace lvg
 {
@@ -433,7 +434,10 @@ namespace lvg
 		Rect rc = m_patchHoleBoundingBoxes[m_nCurrentLevel];
 		int ybegin = rc.top, yend = rc.top + rc.height;
 		int xbegin = rc.left, xend = rc.left + rc.width;
+		FloatImage imWeightsExt;
+		ImageANN annFieldExt;
 
+#ifdef VOTING_ENABLE_MEANSHIFT
 		//estimate \sigma
 		const static float percent = 0.75f;
 		std::vector<float> dists;
@@ -456,8 +460,6 @@ namespace lvg
 		const float sigma = 1.0f / (2.f*dt);
 
 		//calc weights to parse
-		FloatImage imWeightsExt;
-		ImageANN annFieldExt;
 		imWeightsExt.create(annField.width() + 2 * m_nPatchRadius, annField.height() + 2 * m_nPatchRadius);
 		for (int y = 0; y < annField.height(); y++)
 		{
@@ -470,6 +472,10 @@ namespace lvg
 		Rect rt(m_nPatchRadius, m_nPatchRadius, imWeightsExt.width() - 2 * m_nPatchRadius, imWeightsExt.height() - 2 * m_nPatchRadius);
 		imWeightsExt.range(rt).mirrorPadding(imWeightsExt, m_nPatchRadius);
 		annField.mirrorPadding(annFieldExt, m_nPatchRadius);
+#else
+		distField.mirrorPadding(imWeightsExt, m_nPatchRadius);
+		annField.mirrorPadding(annFieldExt, m_nPatchRadius);
+#endif
 
 		//voting
 #pragma omp parallel for
@@ -493,7 +499,9 @@ namespace lvg
 		float3 mean = float3::Constant(0.0f);
 		float variance = 0.0f;
 		float wSum = 0.0f;
+#ifdef VOTING_ENABLE_MEANSHIFT
 		std::vector<std::pair<float3, float>> votes;
+#endif
 		for (int y = yt - m_nPatchRadius; y <= yt + m_nPatchRadius; y++)
 		{
 			for (int x = xt - m_nPatchRadius; x <= xt + m_nPatchRadius; x++)
@@ -507,11 +515,14 @@ namespace lvg
 				float3 color(bcolor[0], bcolor[1], bcolor[2]);
 				mean += color * w;
 				wSum += w;
+#ifdef VOTING_ENABLE_MEANSHIFT
 				votes.push_back(std::pair<float3, float>(color, w));
+#endif
 			}//end for dx
 		}//end for dy
 		mean *= 1.f / wSum;
 
+#ifdef VOTING_ENABLE_MEANSHIFT
 		//calculate vairance
 		for (size_t i = 0; i < votes.size(); i++)
 			variance += (mean - votes[i].first).squaredNorm() * votes[i].second;
@@ -537,6 +548,7 @@ namespace lvg
 			if (kernelW > 0.0)
 				mean = T / kernelW;
 		}//end for width
+#endif
 
 		//output pixel
 		SrcVecType bmean;

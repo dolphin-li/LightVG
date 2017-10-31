@@ -92,14 +92,15 @@ int main()
 #ifdef DEBUG_PATCHMATCH
 	RgbImage img;
 	ByteImage mask;
-	imread("a3.png", img);
-	imread("a2.png", mask);
-	mask *= -1;
-	mask += 255;
+	imread("r.jpg", img);
+	imread("r.png", mask);
+	//maxFilter(mask, mask, 5);
+	//mask *= -1;
+	//mask += 255;
 
 	tic();
 	PatchMatchCompletion pc;
-	pc.completion(img, mask, img);
+	pc.completion(img, mask, img, 10);
 	toc();
 
 	imwrite("result.jpg", img);
