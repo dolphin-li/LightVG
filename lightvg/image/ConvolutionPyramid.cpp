@@ -137,6 +137,34 @@ namespace lvg
 		MergeChannels(srcDst, srcChannels, mask);
 	}
 
+	void ConvolutionPyramid::fillHole(RgbFloatImage& srcDst, const MaskImage& mask)
+	{
+		const int W = srcDst.width();
+		const int H = srcDst.height();
+
+		std::vector<FloatImage> srcChannels;
+		SeparateChannels(srcChannels, srcDst);
+
+		FloatImage boundary;
+		MaskToBoundary(boundary, mask);
+		for (int i = 0; i < int(srcChannels.size()); i++)
+			MultImage(srcChannels[i], boundary);
+
+#pragma omp parallel for
+		for (int i = 0; i < int(srcChannels.size() + 1); i++)
+		{
+			if (i < int(srcChannels.size()))
+				convolveBoundary(srcChannels[i]);
+			else
+				convolveBoundary(boundary);
+		}
+
+		for (int i = 0; i < int(srcChannels.size()); i++)
+			DivImage(srcChannels[i], boundary);
+
+		MergeChannels(srcDst, srcChannels, mask);
+	}
+
 	void ConvolutionPyramid::PyramidConvolve(FloatImage& srcDst, const float* kernel5x5,
 		const float* kernel3x3, const float* kernel5x5up)
 	{

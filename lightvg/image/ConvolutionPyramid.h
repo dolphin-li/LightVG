@@ -19,6 +19,7 @@ namespace lvg
 
 		// dst(mask) = interpolate
 		void fillHole(ColorImage& srcDst, const MaskImage& mask);
+		void fillHole(RgbFloatImage& srcDst, const MaskImage& mask);
 
 		// boundary interpolation
 		// assume the given volume has values at the boundary and 0 inside.
