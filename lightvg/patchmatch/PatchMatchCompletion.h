@@ -4,6 +4,9 @@
 #include <vector>
 #include <numeric>
 
+// if defined, then lab color space will be used for patch match
+//	slower but better result
+//#define PATCH_MATCH_USE_LAB
 
 namespace lvg
 {
@@ -12,19 +15,31 @@ namespace lvg
 
 	class PatchMatchCompletion
 	{
+	public:
 		typedef Image<CBasicPatchMatchOutputFieldInt, 1> ImageANNInt;
 		typedef Image<CBasicPatchMatchOutputFieldFloat, 1> ImageANNFloat;
 		typedef ImageANNFloat ImageANN;
 		typedef RgbFloatImage ImageLabFloat;
+#ifdef PATCH_MATCH_USE_LAB
+		typedef ImageLabFloat SrcImageType;
+		typedef SrcImageType::VecType SrcVecType;
+		typedef float PixelDifType;
+#else
+		typedef RgbImage SrcImageType;
+		typedef SrcImageType::VecType SrcVecType;
+		typedef int PixelDifType;
+#endif
 	public:
 		PatchMatchCompletion();
 		~PatchMatchCompletion();
 
-		void completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, int nPatchSize = 7, int nMaxLevel = 10);
+		void completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
+			int minIterEachLevel = 1, int nPatchSize = 7, int nMaxLevel = 10);
 
 	protected:
 
-		void privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, int nPatchSize, int nMaxLevel);
+		void privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
+			int minIterEachLevel, int nPatchSize, int nMaxLevel);
 
 		//init approximate nearest neighbor field with random value in given mask
 		bool randomANN(const ByteImage& imPatchMask, ImageANN& annField)const;
@@ -36,32 +51,32 @@ namespace lvg
 		void upSample(const ImageANN &annSrcL1, const ByteImage& imPatchMaskL, ImageANN &annDstL, float2 scale)const;
 
 		//perform Iterate() and Average() iteratively
-		void pass(int level, ImageLabFloat &imSrcExt, const ByteImage& imMask, const ByteImage& imPatchMask,
+		void pass(int level, SrcImageType &imSrcExt, const ByteImage& imMask, const ByteImage& imPatchMask,
 			ImageANN &annField, const FloatImage& distField, bool freeze_result)const;
 
 		//call after each average when images are changed
-		void updateANNValues(ImageLabFloat &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField)const;
+		void updateANNValues(SrcImageType &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField)const;
 
 		//perform Patch-Match algorithm
-		void iterate(ImageLabFloat &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField, int downDir)const;
+		void iterate(SrcImageType &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField, int downDir)const;
 
 		//one-pixel in Iterate()
-		void iterateOnePixel(ImageLabFloat &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField,
+		void iterateOnePixel(SrcImageType &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField,
 			int xt, int yt, int ofs)const;
 
 		//same with Average, but the input src image must be boundary extended version
-		void averageExt(ImageLabFloat &imSrcExt, const ByteImage& imMask, const ImageANN &annField, const FloatImage& distField)const;
+		void averageExt(SrcImageType &imSrcExt, const ByteImage& imMask, const ImageANN &annField, const FloatImage& distField)const;
 
 		//one-pixel in Average()
-		void averageOnePixelExt(ImageLabFloat &imSrcExt, const ImageANN &annFieldExt,
+		void averageOnePixelExt(SrcImageType &imSrcExt, const ImageANN &annFieldExt,
 			const FloatImage& weightsExt, int xt, int yt)const;
 
 		//whether ANN of a given point(xt, yt) can be updated to (xnew, ynew)
-		void tryUpdate(const ImageLabFloat& imSrcExt, const ByteImage& imPatchMask, int& xbest, int& ybest, float& dbest,
+		void tryUpdate(const SrcImageType& imSrcExt, const ByteImage& imPatchMask, int& xbest, int& ybest, float& dbest,
 			int xt, int yt, int xnew, int ynew)const;
 
 		//distance of two patches, src1 and src2 should be the left-top corner.
-		static float patchDist(const float3* src1, int stride1, const float3* src2, int stride2, int patchSize, float cutoff = FLT_MAX);
+		static float patchDist(const SrcVecType* src1, int stride1, const SrcVecType* src2, int stride2, int patchSize, float cutoff = FLT_MAX);
 
 		//build gauss pyramid with given level and scalar
 		void buildLanczos3Pyramid();
@@ -78,7 +93,7 @@ namespace lvg
 		ByteImage m_imMask;
 
 		//image pyramid
-		std::vector<ImageLabFloat> m_srcPyramidLab;
+		std::vector<SrcImageType> m_srcPyramidLab;
 		std::vector<float2> m_pyramidScales;
 
 		//mask pyramid
@@ -99,6 +114,7 @@ namespace lvg
 		//size of each patch, 2*m_nPatchRadius+1
 		int m_nPatchSize;
 		int m_nPatchRadius;
+		int m_nMinIterEachLevel;
 
 		//max level of image pyramid
 		int m_nMaxLevel;

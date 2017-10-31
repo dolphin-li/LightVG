@@ -13,6 +13,8 @@
 
 namespace lvg
 {
+	typedef PatchMatchCompletion::SrcVecType SrcVecType;
+	typedef PatchMatchCompletion::PixelDifType PixelDifType;
 
 	const double PatchMatchCompletion::SCALE_PER_LEVEL = 0.5;
 
@@ -40,6 +42,7 @@ namespace lvg
 		m_nPatchRadius = 0;
 		m_nMaxLevel = 0;
 		m_nCurrentLevel = 0;
+		m_nMinIterEachLevel = 0;
 
 		//for debug
 		m_timeIterate = 0;
@@ -48,7 +51,8 @@ namespace lvg
 		m_timeOthers = 0;
 	}
 
-	void PatchMatchCompletion::completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, int nPatchSize, int nMaxLevel)
+	void PatchMatchCompletion::completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
+		int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
 		//check input
 		if (imSrc.width() != imMask.width() || imSrc.height() != imMask.height())
@@ -75,16 +79,18 @@ namespace lvg
 		ByteImage imSubMask = imMask.range(subRect);
 
 		//inpainting
-		privateCompletion(imSubColor, imSubMask, imSubDst, nPatchSize, nMaxLevel);
+		privateCompletion(imSubColor, imSubMask, imSubDst, minIterEachLevel, nPatchSize, nMaxLevel);
 	}
 
-	void PatchMatchCompletion::privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, int nPatchSize, int nMaxLevel)
+	void PatchMatchCompletion::privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
+		int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
 		clear();
 
 		m_imSrc = imSrc;
 		m_imMask = imMask;
 		m_nPatchSize = nPatchSize;
+		m_nMinIterEachLevel = minIterEachLevel;
 		m_nPatchRadius = m_nPatchSize / 2;
 		m_nPatchSize = m_nPatchRadius * 2 + 1;
 
@@ -102,13 +108,13 @@ namespace lvg
 		int startLevel = m_nMaxLevel - 1;
 		for (m_nCurrentLevel = m_nMaxLevel - 1; m_nCurrentLevel >= 0; m_nCurrentLevel--)
 		{
-			ImageLabFloat &imgLab = m_srcPyramidLab[m_nCurrentLevel];
+			SrcImageType &imgLab = m_srcPyramidLab[m_nCurrentLevel];
 			ByteImage &mask = m_maskPyramid[m_nCurrentLevel];
 			ByteImage &patchMask = m_patchMaskPyramid[m_nCurrentLevel];
 			ImageANN &annField = m_annFieldPyramid[m_nCurrentLevel];
 			FloatImage &distField = m_distFiledPyramid[m_nCurrentLevel];
 
-			ImageLabFloat imgLabExt;
+			SrcImageType imgLabExt;
 
 			//update hole values
 			if (m_nCurrentLevel == startLevel)
@@ -118,10 +124,14 @@ namespace lvg
 					startLevel--;	//prevent the possibility that there are no known pathes in current level
 					continue;
 				}
+#ifdef PATCH_MATCH_USE_LAB
 				RgbImage img;
 				Lab2sRgb(imgLab, img);
 				fillSmooth(img, mask);
 				sRgb2Lab(img, imgLab);
+#else
+				fillSmooth(imgLab, mask);
+#endif
 				imgLabExt = imgLab.mirrorPadding(m_nPatchRadius);
 				pass(m_nCurrentLevel, imgLabExt, mask, patchMask, annField, distField, false);
 			}//end if level
@@ -142,7 +152,11 @@ namespace lvg
 		printf("Time Statistics: Iterate(%f), Average(%f), UpSample(%f), RandomANN(%f)\n", m_timeIterate, m_timeAverage, m_timeUpSample, m_timeOthers);
 
 		//write back result
+#ifdef PATCH_MATCH_USE_LAB
 		Lab2sRgb(m_srcPyramidLab[0], imDst);
+#else
+		imDst = m_srcPyramidLab[0].clone();
+#endif
 	}
 
 	Rect PatchMatchCompletion::computeHoleBoundingBox(const ByteImage& patchMask)
@@ -266,11 +280,11 @@ namespace lvg
 		m_timeUpSample += gtime_seconds(t1, gtime_now());
 	}
 
-	void PatchMatchCompletion::pass(int level, ImageLabFloat &imSrcExt, const ByteImage& imMask,
+	void PatchMatchCompletion::pass(int level, SrcImageType &imSrcExt, const ByteImage& imMask,
 		const ByteImage& imPatchMask, ImageANN &annField, const FloatImage& distField, bool freeze_result)const
 	{
 		const static int nIter = 4;
-		const int nPasses = std::max(5, 30 - 10 * (m_nMaxLevel - level - 1));
+		const int nPasses = std::max(m_nMinIterEachLevel, 30 - 10 * (m_nMaxLevel - level - 1));
 
 		for (int pass = 0; pass < nPasses; pass++)
 		{
@@ -289,7 +303,7 @@ namespace lvg
 		}//end for pass
 	}
 
-	void PatchMatchCompletion::updateANNValues(ImageLabFloat &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField)const
+	void PatchMatchCompletion::updateANNValues(SrcImageType &imSrcExt, const ByteImage& imPatchMask, ImageANN &annField)const
 	{
 		Rect rc = m_patchHoleBoundingBoxes[m_nCurrentLevel];
 		int ybegin = rc.top, yend = rc.top + rc.height;
@@ -308,15 +322,15 @@ namespace lvg
 				pAnn[xt].GetXY(xbest, ybest);
 
 				//here we use boundary extended image, thus add offset.
-				float dbest = patchDist((const float3*)imSrcExt.rowPtr(yt) + xt, imSrcExt.stride(),
-					(const float3*)imSrcExt.rowPtr(ybest) + xbest, imSrcExt.stride(), m_nPatchSize);
+				float dbest = patchDist((const SrcVecType*)imSrcExt.rowPtr(yt) + xt, imSrcExt.stride(),
+					(const SrcVecType*)imSrcExt.rowPtr(ybest) + xbest, imSrcExt.stride(), m_nPatchSize);
 
 				pAnn[xt].SetValue(dbest);
 			}
 		} // yt
 	}
 
-	void PatchMatchCompletion::iterate(ImageLabFloat &imSrc, const ByteImage& imPatchMask, ImageANN &annField, int downDir)const
+	void PatchMatchCompletion::iterate(SrcImageType &imSrc, const ByteImage& imPatchMask, ImageANN &annField, int downDir)const
 	{
 		gtime_t t1 = gtime_now();
 
@@ -353,7 +367,7 @@ namespace lvg
 		m_timeIterate += gtime_seconds(t1, gtime_now());
 	}
 
-	void PatchMatchCompletion::iterateOnePixel(ImageLabFloat &imSrc, const ByteImage& imPatchMask,
+	void PatchMatchCompletion::iterateOnePixel(SrcImageType &imSrc, const ByteImage& imPatchMask,
 		ImageANN &annField, int xt, int yt, int ofs)const
 	{
 		if (IS_NOT_HOLE(imPatchMask.rowPtr(yt)[xt]))
@@ -403,7 +417,7 @@ namespace lvg
 		annField.rowPtr(yt)[xt].SetXYValue(xbest, ybest, dbest);
 	}
 
-	void PatchMatchCompletion::averageExt(ImageLabFloat &imSrcExt, const ByteImage& imMask,
+	void PatchMatchCompletion::averageExt(SrcImageType &imSrcExt, const ByteImage& imMask,
 		const ImageANN &annField, const FloatImage& distField)const
 	{
 		gtime_t t1 = gtime_now();
@@ -464,7 +478,7 @@ namespace lvg
 		m_timeAverage += gtime_seconds(t1, gtime_now());
 	}
 
-	void PatchMatchCompletion::averageOnePixelExt(ImageLabFloat &imSrcExt, const ImageANN &annFieldExt,
+	void PatchMatchCompletion::averageOnePixelExt(SrcImageType &imSrcExt, const ImageANN &annFieldExt,
 		const FloatImage& weightsExt, int xt, int yt)const
 	{
 		//meanshift: weighted sum
@@ -481,7 +495,8 @@ namespace lvg
 				xs += xt - x;
 				ys += yt - y;
 				float w = weightsExt.rowPtr(y + m_nPatchRadius)[x + m_nPatchRadius];
-				float3 color = imSrcExt.pixel(Point(xs + m_nPatchRadius, ys + m_nPatchRadius));
+				SrcVecType bcolor = imSrcExt.pixel(Point(xs + m_nPatchRadius, ys + m_nPatchRadius));
+				float3 color(bcolor[0], bcolor[1], bcolor[2]);
 				mean += color * w;
 				wSum += w;
 				votes.push_back(std::pair<float3, float>(color, w));
@@ -516,66 +531,80 @@ namespace lvg
 		}//end for width
 
 		//output pixel
-		imSrcExt.pixel(Point(xt + m_nPatchRadius, yt + m_nPatchRadius)) = mean;
+		SrcVecType bmean;
+#ifdef PATCH_MATCH_USE_LAB
+		bmean = mean;
+#else
+		for (int c = 0; c < 3; c++)
+			bmean[c] = (uchar)std::max(0.f, std::min(255.f, mean[c]));
+#endif
+		imSrcExt.pixel(Point(xt + m_nPatchRadius, yt + m_nPatchRadius)) = bmean;
 	}
 
-	template<int N> float patch_dist(const float3* src1, int stride1, const float3* src2, int stride2, float cutoff)
+	template<int N> float patch_dist(const SrcVecType* src1, int stride1, const SrcVecType* src2, int stride2, float cutoff)
 	{
-		float sum = 0.f;
+		PixelDifType sum = PixelDifType(0);
 		for (int y = 0; y < N; ++y)
 		{
 			for (int x = 0; x < N; ++x)
 			{
-				const float3& pA = src1[x];
-				const float3& pB = src2[x];
-				float dl = pA[0] - pB[0];
-				float da = pA[1] - pB[1];
-				float db = pA[2] - pB[2];
+				const SrcVecType& pA = src1[x];
+				const SrcVecType& pB = src2[x];
+				PixelDifType dl = pA[0] - pB[0];
+				PixelDifType da = pA[1] - pB[1];
+				PixelDifType db = pA[2] - pB[2];
 				sum += abs(dl) + abs(da) + abs(db);
 			}//end for x
-			if (sum >= cutoff)
+			if ((float)sum >= cutoff)
 				return cutoff;
-			src1 = (const float3*)((const byte*)src1 + stride1);
-			src2 = (const float3*)((const byte*)src2 + stride2);
+			src1 = (const SrcVecType*)((const byte*)src1 + stride1);
+			src2 = (const SrcVecType*)((const byte*)src2 + stride2);
 		}
-		return sum;
+		return (float)sum;
 	}
 
-	float PatchMatchCompletion::patchDist(const float3* src1, int stride1, const float3* src2, int stride2, int patchSize, float cutoff)
+	float PatchMatchCompletion::patchDist(const SrcVecType* src1, int stride1, 
+		const SrcVecType* src2, int stride2, int patchSize, float cutoff)
 	{
 		if (patchSize == 9)
 			return patch_dist<9>(src1, stride1, src2, stride2, cutoff);
 		if (patchSize == 7)
 			return patch_dist<7>(src1, stride1, src2, stride2, cutoff);
-		float sum = 0.f;
+		if (patchSize == 5)
+			return patch_dist<5>(src1, stride1, src2, stride2, cutoff);
+		if (patchSize == 3)
+			return patch_dist<3>(src1, stride1, src2, stride2, cutoff);
+		if (patchSize == 1)
+			return patch_dist<1>(src1, stride1, src2, stride2, cutoff);
+		PixelDifType sum = PixelDifType(0);
 		for (int y = 0; y <= patchSize; ++y)
 		{
 			for (int x = 0; x < patchSize; ++x)
 			{
-				const float3& pA = src1[x];
-				const float3& pB = src2[x];
-				float dl = pA[0] - pB[0];
-				float da = pA[1] - pB[1];
-				float db = pA[2] - pB[2];
+				const SrcVecType& pA = src1[x];
+				const SrcVecType& pB = src2[x];
+				PixelDifType dl = pA[0] - pB[0];
+				PixelDifType da = pA[1] - pB[1];
+				PixelDifType db = pA[2] - pB[2];
 				sum += abs(dl) + abs(da) + abs(db);
 			}//end for x
-			if (sum >= cutoff)
+			if ((float)sum >= cutoff)
 				return cutoff;
-			src1 = (const float3*)((const byte*)src1 + stride1);
-			src2 = (const float3*)((const byte*)src2 + stride2);
+			src1 = (const SrcVecType*)((const byte*)src1 + stride1);
+			src2 = (const SrcVecType*)((const byte*)src2 + stride2);
 		}
-		return sum;
+		return (float)sum;
 	}
 
-	void PatchMatchCompletion::tryUpdate(const ImageLabFloat& imSrcExt, const ByteImage& imPatchMask,
+	void PatchMatchCompletion::tryUpdate(const SrcImageType& imSrcExt, const ByteImage& imPatchMask,
 		int& xbest, int& ybest, float& dbest, int xt, int yt, int xnew, int ynew)const
 	{
 		if (IS_HOLE(imPatchMask.rowPtr(ynew)[xnew]))
 			return;
 
 		//here imSrc is extended image, thus offset should be added
-		float newDist = patchDist((const float3*)imSrcExt.rowPtr(yt) + xt, imSrcExt.stride(),
-			(const float3*)imSrcExt.rowPtr(ynew) + xnew, imSrcExt.stride(), m_nPatchSize, dbest);
+		float newDist = patchDist((const SrcVecType*)imSrcExt.rowPtr(yt) + xt, imSrcExt.stride(),
+			(const SrcVecType*)imSrcExt.rowPtr(ynew) + xnew, imSrcExt.stride(), m_nPatchSize, dbest);
 		if (newDist < dbest)
 		{
 			xbest = xnew;
@@ -594,7 +623,11 @@ namespace lvg
 		m_patchMaskPyramid.resize(m_nMaxLevel);
 		m_patchHoleBoundingBoxes.resize(m_nMaxLevel);
 
+#ifdef PATCH_MATCH_USE_LAB
 		sRgb2Lab(m_imSrc, m_srcPyramidLab[0]);
+#else
+		m_srcPyramidLab[0] = m_imSrc;
+#endif
 		m_maskPyramid[0] = m_imMask;
 		m_pyramidScales[0] = float2::Constant(1.f);
 
