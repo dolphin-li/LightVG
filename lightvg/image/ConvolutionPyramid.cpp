@@ -72,6 +72,43 @@ namespace lvg
 		MergeChannels(dst, srcChannels, mask);
 	}
 
+	void ConvolutionPyramid::blendImage(RgbFloatImage& dst, const RgbFloatImage& src, const MaskImage& mask)
+	{
+		const int W = src.width();
+		const int H = src.height();
+
+		std::vector<FloatImage> srcChannels, dstChannels;
+		SeparateChannels(srcChannels, src);
+		SeparateChannels(dstChannels, dst);
+
+		FloatImage boundary;
+		MaskToBoundary(boundary, mask);
+#pragma omp parallel for
+		for (int i = 0; i < int(srcChannels.size()); i++)
+		{
+			AddImage(dstChannels[i], srcChannels[i], 1.f, -1.f);
+			MultImage(dstChannels[i], boundary);
+		}
+
+#pragma omp parallel for
+		for (int i = 0; i < int(dstChannels.size() + 1); i++)
+		{
+			if (i < int(dstChannels.size()))
+				convolveBoundary(dstChannels[i]);
+			else
+				convolveBoundary(boundary);
+		}
+
+#pragma omp parallel for
+		for (int i = 0; i < int(srcChannels.size()); i++)
+		{
+			DivImage(dstChannels[i], boundary);
+			AddImage(srcChannels[i], dstChannels[i]);
+		}
+
+		MergeChannels(dst, srcChannels, mask);
+	}
+
 	void ConvolutionPyramid::fillHole(ColorImage& srcDst, const MaskImage& mask)
 	{
 		const int W = srcDst.width();
@@ -303,6 +340,29 @@ namespace lvg
 		} // y
 	}
 
+	void ConvolutionPyramid::SeparateChannels(std::vector<FloatImage>& imgChannels, const RgbFloatImage& img)
+	{
+		const int sW = img.width();
+		const int sH = img.height();
+		imgChannels.resize(img.channels());
+		for (int c = 0; c < ColorImage::ChannelNum; c++)
+			imgChannels[c].create(sW, sH);
+#pragma omp parallel for
+		for (int y = 0; y < sH; y++)
+		{
+			const float* imgRow = img.rowPtr(y);
+			float* cptrs[ColorImage::ChannelNum];
+			for (int c = 0; c < ColorImage::ChannelNum; c++)
+				cptrs[c] = imgChannels[c].rowPtr(y);
+			for (int x = 0; x < sW; x++)
+			{
+				for (int c = 0; c < ColorImage::ChannelNum; c++)
+					cptrs[c][x] = imgRow[c];
+				imgRow += ColorImage::ChannelNum;
+			} // x
+		} // y
+	}
+
 	void ConvolutionPyramid::MergeChannels(ColorImage& img, const std::vector<FloatImage>& imgChannels, const MaskImage& mask)
 	{
 		if (imgChannels.size() != ColorImage::ChannelNum)
@@ -325,6 +385,33 @@ namespace lvg
 				if (maskRow[x] > 128)
 					for (int c = 0; c < ColorImage::ChannelNum; c++)
 						imgRow[c] = (unsigned char)std::max(0.f, std::min(255.f, cptrs[c][x] * 255.f));
+				imgRow += ColorImage::ChannelNum;
+			} // x
+		} // y
+	}
+
+	void ConvolutionPyramid::MergeChannels(RgbFloatImage& img, const std::vector<FloatImage>& imgChannels, const MaskImage& mask)
+	{
+		if (imgChannels.size() != ColorImage::ChannelNum)
+		{
+			LVG_LOG(LVG_LOG_ERROR, "channel num not matched!");
+			return;
+		}
+		const int sW = img.width();
+		const int sH = img.height();
+#pragma omp parallel for
+		for (int y = 0; y < sH; y++)
+		{
+			const unsigned char* maskRow = mask.rowPtr(y);
+			float* imgRow = img.rowPtr(y);
+			const float* cptrs[ColorImage::ChannelNum];
+			for (int c = 0; c < ColorImage::ChannelNum; c++)
+				cptrs[c] = imgChannels[c].rowPtr(y);
+			for (int x = 0; x < sW; x++)
+			{
+				if (maskRow[x] > 128)
+					for (int c = 0; c < ColorImage::ChannelNum; c++)
+						imgRow[c] = cptrs[c][x];
 				imgRow += ColorImage::ChannelNum;
 			} // x
 		} // y

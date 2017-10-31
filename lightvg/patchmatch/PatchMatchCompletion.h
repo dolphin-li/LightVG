@@ -4,10 +4,6 @@
 #include <vector>
 #include <numeric>
 
-// if defined, then lab color space will be used for patch match
-//	slower but better result
-//#define PATCH_MATCH_USE_LAB
-
 namespace lvg
 {
 	class CBasicPatchMatchOutputFieldInt;
@@ -19,16 +15,9 @@ namespace lvg
 		typedef Image<CBasicPatchMatchOutputFieldInt, 1> ImageANNInt;
 		typedef Image<CBasicPatchMatchOutputFieldFloat, 1> ImageANNFloat;
 		typedef ImageANNFloat ImageANN;
-		typedef RgbFloatImage ImageLabFloat;
-#ifdef PATCH_MATCH_USE_LAB
-		typedef ImageLabFloat SrcImageType;
+		typedef RgbFloatImage SrcImageType;
 		typedef SrcImageType::VecType SrcVecType;
 		typedef float PixelDifType;
-#else
-		typedef RgbImage SrcImageType;
-		typedef SrcImageType::VecType SrcVecType;
-		typedef int PixelDifType;
-#endif
 	public:
 		PatchMatchCompletion();
 		~PatchMatchCompletion();
@@ -36,16 +25,19 @@ namespace lvg
 		void completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
 			int minIterEachLevel = 1, int nPatchSize = 7, int nMaxLevel = 10);
 
+		void completion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
+			float valueClipMin = 0.f, float valueClipMax = 255.f,
+			int minIterEachLevel = 1, int nPatchSize = 7, int nMaxLevel = 10);
 	protected:
 
-		void privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
-			int minIterEachLevel, int nPatchSize, int nMaxLevel);
+		void privateCompletion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
+			float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel);
 
 		//init approximate nearest neighbor field with random value in given mask
 		bool randomANN(const ByteImage& imPatchMask, ImageANN& annField)const;
 
 		//smoothingly fill image holes, perform poisson image on given src image restricted in given mask
-		void fillSmooth(RgbImage &imSrc, const ByteImage& imMask)const;
+		void fillSmooth(SrcImageType &imSrc, const ByteImage& imMask)const;
 
 		//given coarse level (L1) ANN field and mask in dense level (L), fill ANN field of level (L) with super-sampling
 		void upSample(const ImageANN &annSrcL1, const ByteImage& imPatchMaskL, ImageANN &annDstL, float2 scale)const;
@@ -87,7 +79,7 @@ namespace lvg
 		void clear();
 	protected:
 		//input image
-		RgbImage m_imSrc;
+		SrcImageType m_imSrc;
 
 		//input mask
 		ByteImage m_imMask;
@@ -115,6 +107,8 @@ namespace lvg
 		int m_nPatchSize;
 		int m_nPatchRadius;
 		int m_nMinIterEachLevel;
+		float m_valueClipMin;
+		float m_valueClipMax;
 
 		//max level of image pyramid
 		int m_nMaxLevel;
@@ -148,22 +142,4 @@ namespace lvg
 		void SetValue(float v) { m_value = v; }
 		void SetXYValue(unsigned int x, unsigned int y, float v) { SetXY(x, y); SetValue(v); }
 	};
-
-	class CBasicPatchMatchOutputFieldInt
-	{
-	private:
-		unsigned short m_x, m_y;
-		int m_value;
-	public:
-		CBasicPatchMatchOutputFieldInt() :m_x(0), m_y(0), m_value(0) {}
-		void InitMax() { m_x = 0xffff; m_y = 0xffff; m_value = 0x7fffffff; }
-		unsigned int X()const { return (unsigned int)m_x; }
-		unsigned int Y()const { return (unsigned int)m_y; }
-		void SetXY(unsigned int x, unsigned int y) { assert(x < 0xffff && y < 0xffff); m_x = (unsigned short)x; m_y = (unsigned short)y; }
-		void GetXY(int& x, int & y)const { x = X(); y = Y(); }
-		int Value()const { return m_value; }
-		void SetValue(int v) { m_value = v; }
-		void SetXYValue(unsigned int x, unsigned int y, int v) { SetXY(x, y); SetValue(v); }
-	};
-
 }

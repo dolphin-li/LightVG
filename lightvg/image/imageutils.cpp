@@ -1044,6 +1044,77 @@ namespace lvg
 		maxFilterT(src, dst, nKernel);
 	}
 
+	template<class T> void minFilterT(const Image<T, 1>& src, Image<T, 1>& dst, int nKernel)
+	{
+		if (!dst.sameWith(src))
+			dst = src.clone();
+		else
+			dst = src;
+		switch (nKernel)
+		{
+		case 1:
+			break;
+		case 2:
+			min_filter2<T, 2>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 3:
+			min_filter2<T, 3>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 4:
+			min_filter2<T, 4>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 5:
+			min_filter2<T, 5>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 6:
+			min_filter2<T, 6>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 7:
+			min_filter2<T, 7>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 8:
+			min_filter2<T, 8>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 9:
+			min_filter2<T, 9>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 10:
+			min_filter2<T, 10>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 11:
+			min_filter2<T, 11>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 12:
+			min_filter2<T, 12>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 13:
+			min_filter2<T, 13>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 14:
+			min_filter2<T, 14>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		case 15:
+			min_filter2<T, 15>(dst.data(), dst.width(), dst.height(), dst.stride());
+			break;
+		default:
+			LVG_LOG(LVG_LOG_ERROR, "conv2: non supported kernel size");
+			break;
+		}
+	}
+
+	void minFilter(const FloatImage& src, FloatImage& dst, int nKernel)
+	{
+		minFilterT(src, dst, nKernel);
+	}
+	void minFilter(const ByteImage& src, ByteImage& dst, int nKernel)
+	{
+		minFilterT(src, dst, nKernel);
+	}
+	void minFilter(const IntImage& src, IntImage& dst, int nKernel)
+	{
+		minFilterT(src, dst, nKernel);
+	}
+
 	FloatImage bwdist(const ByteImage& imMask)
 	{
 		FloatImage imDist;

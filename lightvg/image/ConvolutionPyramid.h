@@ -15,6 +15,7 @@ namespace lvg
 	public:
 		// dst(mask) = src, then blend
 		void blendImage(ColorImage& dst, const ColorImage& src, const MaskImage& mask);
+		void blendImage(RgbFloatImage& dst, const RgbFloatImage& src, const MaskImage& mask);
 
 		// dst(mask) = interpolate
 		void fillHole(ColorImage& srcDst, const MaskImage& mask);
@@ -59,8 +60,10 @@ namespace lvg
 
 		static void MaskToFloat(FloatImage& maskF, const MaskImage& mask);
 
+		static void SeparateChannels(std::vector<FloatImage>& imgChannels, const RgbFloatImage& img);
 		static void SeparateChannels(std::vector<FloatImage>& imgChannels, const ColorImage& img);
 
+		static void MergeChannels(RgbFloatImage& img, const std::vector<FloatImage>& imgChannels, const MaskImage& mask);
 		static void MergeChannels(ColorImage& img, const std::vector<FloatImage>& imgChannels, const MaskImage& mask);
 
 		// dX = imfilter(I, [1 -1 0])

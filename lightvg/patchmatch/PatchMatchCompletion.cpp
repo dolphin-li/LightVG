@@ -2,6 +2,7 @@
 #include "lightvg\common\logger.h"
 #include "lightvg\common\timeutils.h"
 #include "lightvg\image\ConvolutionPyramid.h"
+#include "lightvg\image\opencvdebug.h"
 
 //for patch offset
 #define NON_LOCAL_THRESHOLD_RATIO 1 / 15.0f //default 1/15.0f
@@ -51,8 +52,17 @@ namespace lvg
 		m_timeOthers = 0;
 	}
 
-	void PatchMatchCompletion::completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
+	void PatchMatchCompletion::completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst,
 		int minIterEachLevel, int nPatchSize, int nMaxLevel)
+	{
+		SrcImageType src1, dst1;
+		imSrc.convertTo(src1);
+		completion(src1, imMask, dst1, 0.f, 255.f, minIterEachLevel, nPatchSize, nMaxLevel);
+		dst1.convertTo(imDst);
+	}
+
+	void PatchMatchCompletion::completion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
+		float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
 		//check input
 		if (imSrc.width() != imMask.width() || imSrc.height() != imMask.height())
@@ -74,16 +84,16 @@ namespace lvg
 		const int inf = INFLATION_RATIO;
 		subRect = subRect.inflate(subRect.width * inf, subRect.height * inf).intersect(imMask.rect());
 		imDst = imSrc.clone();
-		RgbImage imSubDst = imDst.range(subRect);
-		RgbImage imSubColor = imSrc.range(subRect);
+		SrcImageType imSubDst = imDst.range(subRect);
+		SrcImageType imSubColor = imSrc.range(subRect);
 		ByteImage imSubMask = imMask.range(subRect);
 
 		//inpainting
-		privateCompletion(imSubColor, imSubMask, imSubDst, minIterEachLevel, nPatchSize, nMaxLevel);
+		privateCompletion(imSubColor, imSubMask, imSubDst, valueClipMin, valueClipMax, minIterEachLevel, nPatchSize, nMaxLevel);
 	}
 
-	void PatchMatchCompletion::privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
-		int minIterEachLevel, int nPatchSize, int nMaxLevel)
+	void PatchMatchCompletion::privateCompletion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
+		float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
 		clear();
 
@@ -91,6 +101,8 @@ namespace lvg
 		m_imMask = imMask;
 		m_nPatchSize = nPatchSize;
 		m_nMinIterEachLevel = minIterEachLevel;
+		m_valueClipMax = valueClipMax;
+		m_valueClipMin = valueClipMin;
 		m_nPatchRadius = m_nPatchSize / 2;
 		m_nPatchSize = m_nPatchRadius * 2 + 1;
 
@@ -149,14 +161,10 @@ namespace lvg
 			LVG_LOG(LVG_LOG_VERBOSE, std::string("level processed: ")+std::to_string(m_nCurrentLevel));
 		}//end for level
 
-		printf("Time Statistics: Iterate(%f), Average(%f), UpSample(%f), RandomANN(%f)\n", m_timeIterate, m_timeAverage, m_timeUpSample, m_timeOthers);
+		printf("Time Statistics: Iterate(%f), Average(%f), UpSample(%f), Others(%f)\n", m_timeIterate, m_timeAverage, m_timeUpSample, m_timeOthers);
 
 		//write back result
-#ifdef PATCH_MATCH_USE_LAB
-		Lab2sRgb(m_srcPyramidLab[0], imDst);
-#else
-		imDst = m_srcPyramidLab[0].clone();
-#endif
+		imDst.copyFrom(m_srcPyramidLab[0]);
 	}
 
 	Rect PatchMatchCompletion::computeHoleBoundingBox(const ByteImage& patchMask)
@@ -222,12 +230,12 @@ namespace lvg
 		return true;
 	}
 
-	void PatchMatchCompletion::fillSmooth(RgbImage &imSrc, const ByteImage& imMask)const
+	void PatchMatchCompletion::fillSmooth(SrcImageType &imSrc, const ByteImage& imMask)const
 	{
 		gtime_t t1 = gtime_now();
 
 		//poisson init
-		RgbImage tSrc = imSrc.mirrorPadding(1);
+		SrcImageType tSrc = imSrc.mirrorPadding(1);
 		ByteImage tMask = imMask.mirrorPadding(1);
 		ConvolutionPyramid cpy;
 		cpy.blendImage(tSrc, tSrc, tMask);
@@ -532,12 +540,8 @@ namespace lvg
 
 		//output pixel
 		SrcVecType bmean;
-#ifdef PATCH_MATCH_USE_LAB
-		bmean = mean;
-#else
 		for (int c = 0; c < 3; c++)
-			bmean[c] = (uchar)std::max(0.f, std::min(255.f, mean[c]));
-#endif
+			bmean[c] = (uchar)std::max(m_valueClipMin, std::min(m_valueClipMax, mean[c]));
 		imSrcExt.pixel(Point(xt + m_nPatchRadius, yt + m_nPatchRadius)) = bmean;
 	}
 
@@ -615,6 +619,8 @@ namespace lvg
 
 	void PatchMatchCompletion::buildLanczos3Pyramid()
 	{
+		gtime_t t1 = gtime_now();
+
 		m_srcPyramidLab.resize(m_nMaxLevel);
 		m_maskPyramid.resize(m_nMaxLevel);
 		m_pyramidScales.resize(m_nMaxLevel);
@@ -623,11 +629,7 @@ namespace lvg
 		m_patchMaskPyramid.resize(m_nMaxLevel);
 		m_patchHoleBoundingBoxes.resize(m_nMaxLevel);
 
-#ifdef PATCH_MATCH_USE_LAB
-		sRgb2Lab(m_imSrc, m_srcPyramidLab[0]);
-#else
 		m_srcPyramidLab[0] = m_imSrc;
-#endif
 		m_maskPyramid[0] = m_imMask;
 		m_pyramidScales[0] = float2::Constant(1.f);
 
@@ -663,6 +665,8 @@ namespace lvg
 					D.rowPtr(y)[x] = 5.0f + 200.0f * (float)pow(1.3, double(-D.rowPtr(y)[x] - 5 * IS_HOLE(imMask.rowPtr(y)[x])));
 
 		}//end for i
+
+		m_timeOthers += gtime_seconds(t1, gtime_now());
 	}
 
 } // lvg

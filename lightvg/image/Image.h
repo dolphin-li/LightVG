@@ -237,12 +237,44 @@ namespace lvg
 			return *this;
 		}
 
+		template<class E>
+		void convertTo(Image<E, Channels>& dst, E alpha = E(1), E beta = E(0))const
+		{
+			if (dst.width() != m_width || dst.height() != m_height)
+				dst.create(m_width, m_height);
+
+			for (int y = 0; y < m_height; y++)
+			{
+				const T* psrc = rowPtr(y);
+				E* pdst = dst.rowPtr(y);
+				for (int x = 0; x < m_width; x++)
+				{
+					for (int c = 0; c < Channels; c++)
+						pdst[c] = E(psrc[c]) * alpha + beta;
+					psrc += Channels;
+					pdst += Channels;
+				} // x
+			} // y
+		}
+
 		// padding by 0
 		Image zeroPadding(int l, int r, int t, int b)const
 		{
-			Image dst;
-			dst.create(m_width + l + r, m_height + t + b);
-			
+			Image dst;		
+			zeroPadding(dst, l, r, t, b);
+			return dst;
+		}
+
+		Image zeroPadding(int sz)const
+		{
+			return zeroPadding(sz, sz, sz, sz);
+		}
+
+		void zeroPadding(Image& dst, int l, int r, int t, int b)const
+		{
+			if (dst.width() != m_width + l + r || dst.height() != m_height + t + b)
+				dst.create(m_width + l + r, m_height + t + b);
+
 			// middel rows
 			for (int y = 0; y < m_height; y++)
 			{
@@ -253,33 +285,43 @@ namespace lvg
 				memset(dst_y + (m_width + l)*Channels, 0, r*Channels * sizeof(T));
 			}// y
 
-			// top rows
+			 // top rows
 			for (int y = 0; y < t; y++)
 			{
 				T* dst_y = dst.rowPtr(y);
 				memset(dst_y, 0, dst.m_width * Channels * sizeof(T));
 			} // y
 
-			// bottom rows
+			  // bottom rows
 			for (int y = 0; y < b; y++)
 			{
 				T* dst_y = dst.rowPtr(y + m_height + t);
 				memset(dst_y, 0, dst.m_width * Channels * sizeof(T));
 			} // y
-
-			return dst;
 		}
 
-		Image zeroPadding(int sz)const
+		void zeroPadding(Image& dst, int sz)const
 		{
-			return zeroPadding(sz, sz, sz, sz);
+			return zeroPadding(dst, sz, sz, sz, sz);
 		}
 
 		// padding by boundary values
 		Image boundaryPadding(int l, int r, int t, int b)const
 		{
 			Image dst;
-			dst.create(m_width + l + r, m_height + t + b);
+			boundaryPadding(dst, l, r, t, b);
+			return dst;
+		}
+
+		Image boundaryPadding(int sz)const
+		{
+			return boundaryPadding(sz, sz, sz, sz);
+		}
+
+		void boundaryPadding(Image& dst, int l, int r, int t, int b)const
+		{
+			if (dst.width() != m_width + l + r || dst.height() != m_height + t + b)
+				dst.create(m_width + l + r, m_height + t + b);
 
 			// middel rows
 			for (int y = 0; y < m_height; y++)
@@ -309,7 +351,7 @@ namespace lvg
 				}
 			}// y
 
-			// top rows
+			 // top rows
 			for (int y = 0; y < t; y++)
 			{
 				T* dst_y = dst.rowPtr(y);
@@ -317,20 +359,18 @@ namespace lvg
 				memcpy(dst_y, src_y, dst.m_width * Channels * sizeof(T));
 			} // y
 
-			// bottom rows
+			  // bottom rows
 			for (int y = 0; y < b; y++)
 			{
 				T* dst_y = dst.rowPtr(y + m_height + t);
 				const T* src_y = dst.rowPtr(t + m_height - 1);
 				memcpy(dst_y, src_y, dst.m_width * Channels * sizeof(T));
 			} // y
-
-			return dst;
 		}
 
-		Image boundaryPadding(int sz)const
+		void boundaryPadding(Image& dst, int sz)const
 		{
-			return boundaryPadding(sz, sz, sz, sz);
+			return boundaryPadding(dst, sz, sz, sz, sz);
 		}
 
 		// padding by mirror near-boundary values

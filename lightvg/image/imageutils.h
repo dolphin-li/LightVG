@@ -25,6 +25,9 @@ namespace lvg
 	void maxFilter(const FloatImage& src, FloatImage& dst, int nKernel);
 	void maxFilter(const ByteImage& src, ByteImage& dst, int nKernel);
 	void maxFilter(const IntImage& src, IntImage& dst, int nKernel);
+	void minFilter(const FloatImage& src, FloatImage& dst, int nKernel);
+	void minFilter(const ByteImage& src, ByteImage& dst, int nKernel);
+	void minFilter(const IntImage& src, IntImage& dst, int nKernel);
 
 	// similar with Matlab's bwdist()
 	// for mask > 128, compute the pixel distances to the boundary (mask < 128)
