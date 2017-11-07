@@ -129,12 +129,14 @@ namespace lvg
 			// transform the pointer to cuda::pointer before calling cuda::free
 			aligned_free(i->second);
 		}
+		free_blocks.clear();
 
 		for (allocated_blocks_type::iterator i = allocated_blocks.begin(); i != allocated_blocks.end(); ++i)
 		{
 			// transform the pointer to cuda::pointer before calling cuda::free
 			aligned_free(i->first);
 		}
+		allocated_blocks.clear();
 	}
 
 } // lvg

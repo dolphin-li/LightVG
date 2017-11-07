@@ -3,11 +3,10 @@
 using namespace lvg;
 
 //#define DEBUG_BOUNDARY_INTERPOLATE
-//#define DEBUG_POISSON
+#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
-
-#define DEBUG_PATCHMATCH
+//#define DEBUG_PATCHMATCH
 
 int main()
 {
@@ -92,8 +91,8 @@ int main()
 #ifdef DEBUG_PATCHMATCH
 	RgbImage img;
 	ByteImage mask;
-	imread("r.jpg", img);
-	imread("r.png", mask);
+	imread("horse.jpg", img);
+	imread("horse.png", mask);
 	//maxFilter(mask, mask, 5);
 	//mask *= -1;
 	//mask += 255;

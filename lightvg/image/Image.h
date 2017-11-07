@@ -511,6 +511,11 @@ namespace lvg
 				&& m_width == r.m_width && m_height == r.m_height;
 		}
 
+		bool sameShape(const Image& r)const
+		{
+			return m_width == r.m_width && m_height == r.m_height;
+		}
+
 		T* data() { return m_data; }
 		const T* data()const { return m_data; }
 		T* rowPtr(int row) { return (T*)(((char*)m_data) + row*m_stride); }
