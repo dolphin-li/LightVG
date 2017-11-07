@@ -6,13 +6,11 @@
 
 namespace lvg
 {
-	class CBasicPatchMatchOutputFieldInt;
 	class CBasicPatchMatchOutputFieldFloat;
 
 	class PatchMatchCompletion
 	{
 	public:
-		typedef Image<CBasicPatchMatchOutputFieldInt, 1> ImageANNInt;
 		typedef Image<CBasicPatchMatchOutputFieldFloat, 1> ImageANNFloat;
 		typedef ImageANNFloat ImageANN;
 		typedef RgbFloatImage SrcImageType;
@@ -22,16 +20,12 @@ namespace lvg
 		PatchMatchCompletion();
 		~PatchMatchCompletion();
 
-		void completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst, 
-			int minIterEachLevel = 1, int nPatchSize = 7, int nMaxLevel = 10);
-
-		void completion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
-			float valueClipMin = 0.f, float valueClipMax = 255.f,
+		void completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst,
 			int minIterEachLevel = 1, int nPatchSize = 7, int nMaxLevel = 10);
 	protected:
 
-		void privateCompletion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
-			float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel);
+		void privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst,
+			int minIterEachLevel, int nPatchSize, int nMaxLevel);
 
 		//init approximate nearest neighbor field with random value in given mask
 		bool randomANN(const ByteImage& imPatchMask, ImageANN& annField)const;
@@ -79,7 +73,7 @@ namespace lvg
 		void clear();
 	protected:
 		//input image
-		SrcImageType m_imSrc;
+		RgbImage m_imSrc;
 
 		//input mask
 		ByteImage m_imMask;
@@ -107,8 +101,6 @@ namespace lvg
 		int m_nPatchSize;
 		int m_nPatchRadius;
 		int m_nMinIterEachLevel;
-		float m_valueClipMin;
-		float m_valueClipMax;
 
 		//max level of image pyramid
 		int m_nMaxLevel;

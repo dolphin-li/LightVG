@@ -56,15 +56,6 @@ namespace lvg
 	void PatchMatchCompletion::completion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst,
 		int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
-		SrcImageType src1, dst1;
-		imSrc.convertTo(src1);
-		completion(src1, imMask, dst1, 0.f, 255.f, minIterEachLevel, nPatchSize, nMaxLevel);
-		dst1.convertTo(imDst);
-	}
-
-	void PatchMatchCompletion::completion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
-		float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel)
-	{
 		//check input
 		if (imSrc.width() != imMask.width() || imSrc.height() != imMask.height())
 		{
@@ -85,16 +76,16 @@ namespace lvg
 		const int inf = INFLATION_RATIO;
 		subRect = subRect.inflate(subRect.width * inf, subRect.height * inf).intersect(imMask.rect());
 		imDst = imSrc.clone();
-		SrcImageType imSubDst = imDst.range(subRect);
-		SrcImageType imSubColor = imSrc.range(subRect);
+		RgbImage imSubDst = imDst.range(subRect);
+		RgbImage imSubColor = imSrc.range(subRect);
 		ByteImage imSubMask = imMask.range(subRect);
 
 		//inpainting
-		privateCompletion(imSubColor, imSubMask, imSubDst, valueClipMin, valueClipMax, minIterEachLevel, nPatchSize, nMaxLevel);
+		privateCompletion(imSubColor, imSubMask, imSubDst, minIterEachLevel, nPatchSize, nMaxLevel);
 	}
 
-	void PatchMatchCompletion::privateCompletion(const SrcImageType &imSrc, const ByteImage& imMask, SrcImageType& imDst,
-		float valueClipMin, float valueClipMax, int minIterEachLevel, int nPatchSize, int nMaxLevel)
+	void PatchMatchCompletion::privateCompletion(const RgbImage &imSrc, const ByteImage& imMask, RgbImage& imDst,
+		int minIterEachLevel, int nPatchSize, int nMaxLevel)
 	{
 		clear();
 
@@ -102,8 +93,6 @@ namespace lvg
 		m_imMask = imMask;
 		m_nPatchSize = nPatchSize;
 		m_nMinIterEachLevel = minIterEachLevel;
-		m_valueClipMax = valueClipMax;
-		m_valueClipMin = valueClipMin;
 		m_nPatchRadius = m_nPatchSize / 2;
 		m_nPatchSize = m_nPatchRadius * 2 + 1;
 
@@ -165,7 +154,7 @@ namespace lvg
 		printf("Time Statistics: Iterate(%f), Average(%f), UpSample(%f), Others(%f)\n", m_timeIterate, m_timeAverage, m_timeUpSample, m_timeOthers);
 
 		//write back result
-		imDst.copyFrom(m_srcPyramidLab[0]);
+		Lab2sRgb(m_srcPyramidLab[0], imDst);
 	}
 
 	Rect PatchMatchCompletion::computeHoleBoundingBox(const ByteImage& patchMask)
@@ -551,10 +540,7 @@ namespace lvg
 #endif
 
 		//output pixel
-		SrcVecType bmean;
-		for (int c = 0; c < 3; c++)
-			bmean[c] = (uchar)std::max(m_valueClipMin, std::min(m_valueClipMax, mean[c]));
-		imSrcExt.pixel(Point(xt + m_nPatchRadius, yt + m_nPatchRadius)) = bmean;
+		imSrcExt.pixel(Point(xt + m_nPatchRadius, yt + m_nPatchRadius)) = mean;
 	}
 
 	template<int N> float patch_dist(const SrcVecType* src1, int stride1, const SrcVecType* src2, int stride2, float cutoff)
@@ -641,7 +627,7 @@ namespace lvg
 		m_patchMaskPyramid.resize(m_nMaxLevel);
 		m_patchHoleBoundingBoxes.resize(m_nMaxLevel);
 
-		m_srcPyramidLab[0] = m_imSrc;
+		sRgb2Lab(m_imSrc, m_srcPyramidLab[0]);
 		m_maskPyramid[0] = m_imMask;
 		m_pyramidScales[0] = float2::Constant(1.f);
 
