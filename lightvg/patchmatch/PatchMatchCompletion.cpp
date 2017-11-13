@@ -4,10 +4,6 @@
 #include "lightvg\image\ConvolutionPyramid.h"
 #include "lightvg\image\opencvdebug.h"
 
-//for patch offset
-#define NON_LOCAL_THRESHOLD_RATIO 1 / 15.0f //default 1/15.0f
-#define HOLE_AREA_STANDARD 40000 //40000
-#define NUM_SHIFT_CANDIDATES 60 //60				//LDP test
 #define INFLATION_RATIO 3	//size of contex around the hole
 #define IS_HOLE(val) ((val) > 128)
 #define IS_NOT_HOLE(val) (!IS_HOLE(val))
@@ -126,14 +122,7 @@ namespace lvg
 					startLevel--;	//prevent the possibility that there are no known pathes in current level
 					continue;
 				}
-#ifdef PATCH_MATCH_USE_LAB
-				RgbImage img;
-				Lab2sRgb(imgLab, img);
-				fillSmooth(img, mask);
-				sRgb2Lab(img, imgLab);
-#else
 				fillSmooth(imgLab, mask);
-#endif
 				imgLabExt = imgLab.mirrorPadding(m_nPatchRadius);
 				pass(m_nCurrentLevel, imgLabExt, mask, patchMask, annField, distField, false);
 			}//end if level
@@ -228,7 +217,7 @@ namespace lvg
 		SrcImageType tSrc = imSrc.mirrorPadding(1);
 		ByteImage tMask = imMask.mirrorPadding(1);
 		ConvolutionPyramid cpy;
-		cpy.blendImage(tSrc, tSrc, tMask);
+		cpy.fillHole(tSrc, tMask);
 		imSrc.copyFrom(tSrc.range(Rect(1, 1, imSrc.width(), imSrc.height())));
 
 		m_timeOthers += gtime_seconds(t1, gtime_now());
