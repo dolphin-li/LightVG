@@ -37,8 +37,7 @@
 
 // if defined, then the memory of Image class is managed by the mempool
 // faster but larger memory requirements
-// however, you can manually call the Mempool::free_all() method to clear the reserved memory
-#define LVG_IMAGE_USE_MEMPOOL
+// #define LVG_IMAGE_USE_MEMPOOL
 
 // turn on this macro if you need opencv for debugging
 #define LVG_ENABLE_OPENCV_DEBUG

@@ -21,6 +21,7 @@ namespace lvg
 		static void deallocate(char* ptr);
 
 		// manually free all memories reserved by the pool
+		// be careful using this method
 		static void free_all();
 	private:
 		static void *aligned_malloc(size_t size, int alignBytes);
