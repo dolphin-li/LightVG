@@ -126,7 +126,9 @@ namespace lvg
 		const int tail_pos = num - R;
 		const int tail_head_pos = std::max(head_pos, tail_pos);
 
-		__m128 s, knl;
+		__m128 s, knl[N];
+		for(int i=0; i<N; i++)
+			knl[i] = _mm_set_ps1(kernel[i]);
 
 		// the first few elements that do not fullfill the conv kernel
 		for (int x = 0; x < head_pos; x++)
@@ -137,8 +139,7 @@ namespace lvg
 			for (int k = xb; k <= xe; k++)
 			{
 				s = _mm_loadu_ps(src + (k + x) * 4);
-				knl = _mm_set_ps1(kernel[R - k]);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl));
+				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
 			}
 			_mm_storeu_ps(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
@@ -151,8 +152,7 @@ namespace lvg
 			for (int k = -L; k <= R; k++)
 			{
 				s = _mm_loadu_ps(src + (k + x) * 4);
-				knl = _mm_set_ps1(kernel[R - k]);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl));
+				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
 			}
 			_mm_storeu_ps(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
@@ -167,8 +167,7 @@ namespace lvg
 			for (int k = xb; k <= xe; k++)
 			{
 				s = _mm_loadu_ps(src + (k + x) * 4);
-				knl = _mm_set_ps1(kernel[R - k]);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl));
+				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
 			}
 			_mm_storeu_ps(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);

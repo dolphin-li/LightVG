@@ -2,11 +2,12 @@
 #include "lightvg\LightVG.hpp"
 using namespace lvg;
 
-//#define DEBUG_BOUNDARY_INTERPOLATE
+#define DEBUG_BOUNDARY_INTERPOLATE
 //#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
-#define DEBUG_PATCHMATCH
+//#define DEBUG_PATCHMATCH
+//#define DEBUG_CONV
 
 int main()
 {
@@ -103,6 +104,22 @@ int main()
 	toc();
 
 	imwrite("result.jpg", img);
+#endif
+
+#ifdef DEBUG_CONV
+	FloatImage img, dst;
+	img.create(1024, 1024);
+	img.setZero();
+	dst.create(img.width(), img.height());
+	dst.setZero();
+
+	enum {N = 11};
+	float kernel[N] = { 0 };
+
+	lvg::tic();
+	for (int i = 0; i < 100; i++)
+		lvg::separableConv2(img, dst, kernel, N);
+	lvg::toc();
 #endif
 
 	return 0;
