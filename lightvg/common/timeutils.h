@@ -113,7 +113,7 @@ if (++lvg_debug_cnt == lvg_debug_frames)\
 }
 
 #define TIME_ACCUMULATE_PRINT(msg, id)\
-LVG_LOG(LogLevel::LVG_LOG_DEBUG, (msg + std::string(", ") + std::to_string(lvg_debug_sum[id])).c_str())
+LVG_LOG(lvg::LogLevel::LVG_LOG_DEBUG, (msg + std::string(", ") + std::to_string(lvg_debug_sum[id])).c_str())
 
 #else
 #define LVG_TIC() 0
