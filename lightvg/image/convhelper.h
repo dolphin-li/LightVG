@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include "lightvg/common/CachedBuffer.h"
-#include "lightvg/common/definations.h"
 
 #pragma push_macro("min")
 #pragma push_macro("max")

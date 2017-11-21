@@ -20,7 +20,7 @@ int main()
 		imread("a2.png", mask);
 		mask *= -1;
 		mask += 255;
-
+		
 		tic();
 		ConvolutionPyramid conv;
 		conv.blendImage(dst, src, mask);

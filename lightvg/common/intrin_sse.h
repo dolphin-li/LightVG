@@ -49,6 +49,9 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
+namespace lvg
+{
+
 #define CV_HAL_ERROR_OK 0
 #define CV_HAL_ERROR_NOT_IMPLEMENTED 1
 #define CV_HAL_ERROR_UNKNOWN -1
@@ -2102,3 +2105,5 @@ static inline bool hasSIMD128()
 {
 	return true;
 }
+
+} // end namespace lvg

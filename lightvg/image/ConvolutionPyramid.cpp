@@ -222,11 +222,27 @@ namespace lvg
 			throw std::exception();
 		}
 
+#ifdef CV_SIMD128
+		v_float32x4 valpha, vbeta, va, vb;
+		valpha = v_setall_f32(alpha);
+		vbeta = v_setall_f32(beta);
+#endif
+
 		for (int y = 0; y < H; y++)
 		{
 			float* pA = A.rowPtr(y);
 			const float* pB = B.rowPtr(y);
-			for (int x = 0; x < W; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < W - 3; x += 4)
+			{
+				va = v_load(pA + x);
+				vb = v_load(pB + x);
+				va = valpha * va + vbeta * vb;
+				v_store(pA + x, va);
+			}
+#endif
+			for (; x < W; x++)
 				pA[x] = alpha * pA[x] + beta * pB[x];
 		} // y 
 	}
@@ -242,12 +258,27 @@ namespace lvg
 			throw std::exception();
 		}
 
+#ifdef CV_SIMD128
+		v_float32x4 valpha, va, vb, vone;
+		vone = v_setall_f32(1.f);
+#endif
 		for (int y = 0; y < H; y++)
 		{
 			float* pA = A.rowPtr(y);
 			const float* pB = B.rowPtr(y);
 			const float* pAlpha = alpha.rowPtr(y);
-			for (int x = 0; x < W; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < W - 3; x += 4)
+			{
+				va = v_load(pA + x);
+				vb = v_load(pB + x);
+				valpha = v_load(pAlpha + x);
+				va = valpha * va + (vone - valpha) * vb;
+				v_store(pA + x, va);
+			}
+#endif
+			for (; x < W; x++)
 				pA[x] = pAlpha[x] * pA[x] + (1 - pAlpha[x]) * pB[x];
 		} // y 
 	}
@@ -262,15 +293,28 @@ namespace lvg
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
 			throw std::exception();
 		}
+#ifdef CV_SIMD128
+		v_float32x4 valpha, vbeta, va, vb;
+		valpha = v_setall_f32(alpha);
+		vbeta = v_setall_f32(beta);
+#endif
 
 		for (int y = 0; y < H; y++)
 		{
 			float* pA = A.rowPtr(y);
 			const float* pB = B.rowPtr(y);
-			for (int x = 0; x < W; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < W - 3; x += 4)
 			{
-				pA[x] = alpha * pA[x] * pB[x] + beta;
+				va = v_load(pA + x);
+				vb = v_load(pB + x);
+				va = valpha * va * vb + vbeta;
+				v_store(pA + x, va);
 			}
+#endif
+			for (; x < W; x++)
+				pA[x] = alpha * pA[x] * pB[x] + beta;
 		} // y 
 	}
 
@@ -284,15 +328,28 @@ namespace lvg
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
 			throw std::exception();
 		}
+#ifdef CV_SIMD128
+		v_float32x4 valpha, vbeta, va, vb;
+		valpha = v_setall_f32(alpha);
+		vbeta = v_setall_f32(beta);
+#endif
 
 		for (int y = 0; y < H; y++)
 		{
 			float* pA = A.rowPtr(y);
 			const float* pB = B.rowPtr(y);
-			for (int x = 0; x < W; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < W - 3; x += 4)
 			{
-				pA[x] = alpha * pA[x] / pB[x] + beta;
+				va = v_load(pA + x);
+				vb = v_load(pB + x);
+				va = valpha * va / vb + vbeta;
+				v_store(pA + x, va);
 			}
+#endif
+			for (; x < W; x++)
+				pA[x] = alpha * pA[x] / pB[x] + beta;
 		} // y 
 	}
 
@@ -313,7 +370,16 @@ namespace lvg
 		{
 			const float* src_y_ptr = imSrc.rowPtr(y * 2);
 			float* dst_y_ptr = imDst.rowPtr(y);
-			for (int x = 0; x < lW; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < lW - 3; x += 4)
+			{
+				int s = (x << 1);
+				v_float32x4 va(src_y_ptr[s], src_y_ptr[s + 2], src_y_ptr[s + 4], src_y_ptr[s + 6]);
+				v_store(dst_y_ptr + x, va);
+			}
+#endif
+			for (; x < lW; x++)
 				dst_y_ptr[x] = src_y_ptr[x * 2];
 		}// end for y
 	}

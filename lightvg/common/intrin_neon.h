@@ -47,6 +47,9 @@
 #include <algorithm>
 #include <stdint.h>
 #include <arm_neon.h>
+namespace lvg
+{
+
 #define CV_HAL_ERROR_OK 0
 #define CV_HAL_ERROR_NOT_IMPLEMENTED 1
 #define CV_HAL_ERROR_UNKNOWN -1
@@ -1391,3 +1394,4 @@ static inline bool hasSIMD128()
 //CV_CPU_OPTIMIZATION_HAL_NAMESPACE_END
 
 //! @endcond
+} // end namespace lvg
