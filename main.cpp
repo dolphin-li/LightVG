@@ -2,12 +2,12 @@
 #include "lightvg\LightVG.hpp"
 using namespace lvg;
 
-#define DEBUG_BOUNDARY_INTERPOLATE
+//#define DEBUG_BOUNDARY_INTERPOLATE
 //#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
 //#define DEBUG_PATCHMATCH
-//#define DEBUG_CONV
+#define DEBUG_CONV
 
 int main()
 {

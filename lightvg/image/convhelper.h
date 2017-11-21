@@ -172,6 +172,53 @@ namespace lvg
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 	}
+
+	template<int N> void conv_row_sse(float* dst, const float* src, const float* kernel, int num)
+	{
+		const static int L = N / 2 - (N % 2 == 0);
+		const static int R = N / 2;
+		const int head_pos = std::min((int)num, R);
+		const int tail_pos = num - R - 3;
+		const int tail_head_pos = std::max(head_pos, tail_pos);
+
+		v_float32x4 s, knl[N], v;
+		for (int i = 0; i < N; i++)
+			knl[i] = v_setall_f32(kernel[i]);
+
+		// the first few elements that do not fullfill the conv kernel
+		for (int x = 0; x < head_pos; x++)
+		{
+			const int xb = std::max(-L, -x);
+			const int xe = std::min(num - x - 1, R);
+			float v = 0.f;
+			for (int k = xb; k <= xe; k++)
+				v += src[k + x] * kernel[R - k];
+			dst[x] = v;
+		}
+
+		// middle elements that fullfill the conv kernel
+		for (int x = R; x < tail_pos; x += 4)
+		{
+			v = v_setzero_f32();
+			for (int k = -L; k <= R; k++)
+			{
+				s = v_load(src + k + x);
+				v += s * knl[R - k];
+			}
+			v_store(dst + x, v);
+		}// end for x
+
+		 // the last few elements that do not fullfill the conv kernel
+		for (int x = tail_head_pos; x < num; x++)
+		{
+			const int xb = std::max(-L, -x);
+			const int xe = std::min(num - x - 1, R);
+			float v = 0.f;
+			for (int k = xb; k <= xe; k++)
+				v += src[k + x] * kernel[R - k];
+			dst[x] = v;
+		}
+	}
 #endif 
 
 	template<typename T, int N> void max_filter(T* dst, const T* src, int num, int dstStride)
@@ -405,7 +452,19 @@ namespace lvg
 #endif
 
 		// conv along x direction
-		for (int y = 0; y < H; y++)
+		int y = 0;
+#ifdef CV_SIMD128
+		if (typeid(float) == typeid(T))
+		{
+			for (; y < H; y++)
+			{
+				T* dstPtr = (T*)((char*)srcDst + y * stride);
+				memcpy(tmpBuffer.data(), dstPtr, W * sizeof(T));
+				conv_row_sse<N>((float*)dstPtr, (const float*)tmpBuffer.data(), (const float*)kernel, W);
+			}// end for y
+		}
+#endif
+		for (; y < H; y++)
 		{
 			T* dstPtr = (T*)((char*)srcDst + y * stride);
 			memcpy(tmpBuffer.data(), dstPtr, W * sizeof(T));
