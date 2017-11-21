@@ -22,6 +22,7 @@
 #endif
 
 #if defined(__ARM_NEON)
+#define LVG_ENABLE_NEON
 #include <arm_neon.h>
 #include "intrin_neon.h"
 #endif
