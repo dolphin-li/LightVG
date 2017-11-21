@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lightvg\common\mathutils.h"
-#include "lightvg\common\mempool.h"
 #include <vector>
 #include <atomic>
 
@@ -14,12 +13,12 @@ namespace lvg
 	*	NOTE: it is better to separate declarations with definations with template-instance technique
 	*			however, some compilers are too stupid to support this technique.
 	* ***************************************************************************************/
-	template<typename T, int Channels>
+	template<typename T, int Channels, int alignBytes = sizeof(T)>
 	class Image
 	{
 	public:
 		enum {
-			ALIGN_BYTES = MemPool::ALIGN_BYTES,
+			ALIGN_BYTES = alignBytes,
 			ChannelNum = Channels,
 			ALIGN_ELEMENTS = ALIGN_BYTES/sizeof(T),
 		};
@@ -62,11 +61,7 @@ namespace lvg
 			if (bAlloc) {
 				m_refCount = new std::atomic<int>(1);
 				m_stride = (w*Channels * sizeof(T) + ALIGN_BYTES - 1) / ALIGN_BYTES * ALIGN_BYTES;
-#ifdef LVG_IMAGE_USE_MEMPOOL
-				m_data = (T*)MemPool::allocate(h*m_stride);
-#else
 				m_data = (T*)aligned_malloc(h*m_stride);
-#endif
 				m_dataAlloc = m_data;
 			}
 			return *this;
@@ -92,11 +87,7 @@ namespace lvg
 				if (oldVal == 1)
 				{
 					if (m_dataAlloc)
-#ifdef LVG_IMAGE_USE_MEMPOOL
-						MemPool::deallocate((char*)m_dataAlloc);
-#else
 						aligned_free(m_dataAlloc);
-#endif
 					delete m_refCount;
 				}
 			}
@@ -562,9 +553,9 @@ namespace lvg
 		std::atomic<int>* m_refCount;
 	};
 
-	typedef Image<uchar, 1> ByteImage;
-	typedef Image<uchar, 3> RgbImage;
-	typedef Image<uchar, 4> RgbaImage;
+	typedef Image<uchar, 1, 4> ByteImage;
+	typedef Image<uchar, 3, 4> RgbImage;
+	typedef Image<uchar, 4, 4> RgbaImage;
 	typedef Image<int, 1> IntImage;
 	typedef Image<float, 1> FloatImage;
 	typedef Image<float, 3> RgbFloatImage;

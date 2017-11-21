@@ -6,7 +6,23 @@
 
 namespace lvg
 {
-	class CBasicPatchMatchOutputFieldFloat;
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	class CBasicPatchMatchOutputFieldFloat
+	{
+	private:
+		unsigned short m_x, m_y;
+		float m_value;
+	public:
+		CBasicPatchMatchOutputFieldFloat() :m_x(0), m_y(0), m_value(0) {}
+		void InitMax() { m_x = 0xffff; m_y = 0xffff; m_value = FLT_MAX; }
+		unsigned int X()const { return (unsigned int)m_x; }
+		unsigned int Y()const { return (unsigned int)m_y; }
+		void SetXY(unsigned int x, unsigned int y) { assert(x < 0xffff && y < 0xffff); m_x = (unsigned short)x; m_y = (unsigned short)y; }
+		void GetXY(int& x, int & y)const { x = X(); y = Y(); }
+		float Value()const { return m_value; }
+		void SetValue(float v) { m_value = v; }
+		void SetXYValue(unsigned int x, unsigned int y, float v) { SetXY(x, y); SetValue(v); }
+	};
 
 	class PatchMatchCompletion
 	{
@@ -116,22 +132,4 @@ namespace lvg
 		mutable double m_timeUpSample;
 		mutable double m_timeOthers;
 	};//class CBasicPatchMatch
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	class CBasicPatchMatchOutputFieldFloat
-	{
-	private:
-		unsigned short m_x, m_y;
-		float m_value;
-	public:
-		CBasicPatchMatchOutputFieldFloat() :m_x(0), m_y(0), m_value(0) {}
-		void InitMax() { m_x = 0xffff; m_y = 0xffff; m_value = FLT_MAX; }
-		unsigned int X()const { return (unsigned int)m_x; }
-		unsigned int Y()const { return (unsigned int)m_y; }
-		void SetXY(unsigned int x, unsigned int y) { assert(x < 0xffff && y < 0xffff); m_x = (unsigned short)x; m_y = (unsigned short)y; }
-		void GetXY(int& x, int & y)const { x = X(); y = Y(); }
-		float Value()const { return m_value; }
-		void SetValue(float v) { m_value = v; }
-		void SetXYValue(unsigned int x, unsigned int y, float v) { SetXY(x, y); SetValue(v); }
-	};
 }

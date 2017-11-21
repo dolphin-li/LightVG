@@ -35,10 +35,6 @@
 #include <xmmintrin.h>      // __m128 data type and SSE functions
 #endif
 
-// if defined, then the memory of Image class is managed by the mempool
-// faster but larger memory requirements
-// #define LVG_IMAGE_USE_MEMPOOL
-
 // turn on this macro if you need opencv for debugging
 #define LVG_ENABLE_OPENCV_DEBUG
 

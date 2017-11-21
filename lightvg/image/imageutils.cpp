@@ -973,7 +973,7 @@ namespace lvg
 		}
 	}
 
-	template<class T> void maxFilterT(const Image<T, 1>& src, Image<T, 1>& dst, int nKernel)
+	template<class T> void maxFilterT(const Image<T, 1, 4>& src, Image<T, 1, 4>& dst, int nKernel)
 	{
 		if (!dst.sameWith(src))
 			dst = src.clone();
@@ -1044,7 +1044,7 @@ namespace lvg
 		maxFilterT(src, dst, nKernel);
 	}
 
-	template<class T> void minFilterT(const Image<T, 1>& src, Image<T, 1>& dst, int nKernel)
+	template<class T> void minFilterT(const Image<T, 1, 4>& src, Image<T, 1, 4>& dst, int nKernel)
 	{
 		if (!dst.sameWith(src))
 			dst = src.clone();
@@ -1242,9 +1242,10 @@ namespace lvg
 				w[j] /= sumW;
 		}
 	}
-	template<class T, int Channels> Image<T, Channels> imresizeBilinear(const Image<T, Channels>& src, int dstW, int dstH)
+	template<class T, int Channels, int alignBytes> 
+	Image<T, Channels, alignBytes> imresizeBilinear(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
 	{
-		Image<T, Channels> dst;
+		Image<T, Channels, alignBytes> dst;
 		dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
@@ -1303,9 +1304,10 @@ namespace lvg
 
 		return dst;
 	}
-	template<class T, int Channels> Image<T, Channels> imresizeNearest(const Image<T, Channels>& src, int dstW, int dstH)
+	template<class T, int Channels, int alignBytes> 
+	Image<T, Channels, alignBytes> imresizeNearest(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
 	{
-		Image<T, Channels> dst;
+		Image<T, Channels, alignBytes> dst;
 		dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
@@ -1333,9 +1335,10 @@ namespace lvg
 
 		return dst;
 	}
-	template<class T, int Channels> Image<T, Channels> imresizeLanczos3(const Image<T, Channels>& src, int dstW, int dstH)
+	template<class T, int Channels, int alignBytes> 
+	Image<T, Channels, alignBytes> imresizeLanczos3(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
 	{
-		Image<T, Channels> dst;
+		Image<T, Channels, alignBytes> dst;
 		dst.create(dstW, dstH);
 
 		if (dst.width() == 0 || dst.height() == 0 || src.width() == 0 || src.height() == 0)
@@ -1402,16 +1405,17 @@ namespace lvg
 		return dst;
 	}
 	
-	template<class T, int C> Image<T, C> imresizeT(const Image<T, C>& src, int dstW, int dstH, ResizeMethod m)
+	template<class T, int C, int alignBytes> Image<T, C, alignBytes> 
+		imresizeT(const Image<T, C, alignBytes>& src, int dstW, int dstH, ResizeMethod m)
 	{
 		switch (m)
 		{
 		case lvg::ResizeLinear:
-			return imresizeBilinear<T, C>(src, dstW, dstH);
+			return imresizeBilinear<T, C, alignBytes>(src, dstW, dstH);
 		case lvg::ResizeNearest:
-			return imresizeNearest<T, C>(src, dstW, dstH);
+			return imresizeNearest<T, C, alignBytes>(src, dstW, dstH);
 		case lvg::ResizeLanczos3:
-			return imresizeLanczos3<T, C>(src, dstW, dstH);
+			return imresizeLanczos3<T, C, alignBytes>(src, dstW, dstH);
 		default:
 			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
 			throw std::exception();
