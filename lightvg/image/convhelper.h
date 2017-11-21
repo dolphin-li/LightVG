@@ -1,7 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include "lightvg\common\CachedBuffer.h"
+#include "lightvg/common/CachedBuffer.h"
+#include "lightvg/common/definations.h"
 
 #pragma push_macro("min")
 #pragma push_macro("max")
@@ -9,7 +10,7 @@
 #undef max
 namespace lvg
 {
-#ifdef LVG_ENABLE_SSE
+#ifdef CV_SIMD128
 	template<int N> void max_filter_sse(float* dst, const float* src, int num, int dstStride)
 	{
 		const static int L = N / 2 - (N % 2 == 0);
@@ -18,33 +19,32 @@ namespace lvg
 		const int tail_pos = num - R;
 		const int tail_head_pos = std::max(head_pos, tail_pos);
 
-		__m128 s;
-
+		v_float32x4 s, v;
 		// the first few elements that does not fullfill the conv kernel
 		for (int x = 0; x < head_pos; x++)
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::lowest());
+			v = v_setall_f32(std::numeric_limits<float>::lowest());
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_max_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_max(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 
 		// middle elements that fullfills the conv kernel
 		for (int x = R; x < tail_pos; x++)
 		{
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::lowest());
+			v = v_setall_f32(std::numeric_limits<float>::lowest());
 			for (int k = -L; k <= R; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_max_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_max(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}// end for x
 
@@ -53,13 +53,13 @@ namespace lvg
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::lowest());
+			v = v_setall_f32(std::numeric_limits<float>::lowest());
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_max_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_max(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 	}
@@ -72,33 +72,33 @@ namespace lvg
 		const int tail_pos = num - R;
 		const int tail_head_pos = std::max(head_pos, tail_pos);
 
-		__m128 s;
+		v_float32x4 s, v;
 
 		// the first few elements that does not fullfill the conv kernel
 		for (int x = 0; x < head_pos; x++)
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::max());
+			v = v_setall_f32(std::numeric_limits<float>::max());
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_min_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_min(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 
 		// middle elements that fullfills the conv kernel
 		for (int x = R; x < tail_pos; x++)
 		{
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::max());
+			v = v_setall_f32(std::numeric_limits<float>::max());
 			for (int k = -L; k <= R; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_min_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_min(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}// end for x
 
@@ -107,13 +107,13 @@ namespace lvg
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_set_ps1(std::numeric_limits<float>::max());
+			v = v_setall_f32(std::numeric_limits<float>::max());
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_min_ps(v, s);
+				s = v_load(src + (k + x) * 4);
+				v = v_min(v, s);
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 	}
@@ -126,35 +126,35 @@ namespace lvg
 		const int tail_pos = num - R;
 		const int tail_head_pos = std::max(head_pos, tail_pos);
 
-		__m128 s, knl[N];
-		for(int i=0; i<N; i++)
-			knl[i] = _mm_set_ps1(kernel[i]);
+		v_float32x4 s, knl[N], v;
+		for (int i = 0; i < N; i++)
+			knl[i] = v_setall_f32(kernel[i]);
 
 		// the first few elements that do not fullfill the conv kernel
 		for (int x = 0; x < head_pos; x++)
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_setzero_ps();
+			v = v_setzero_f32();
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
+				s = v_load(src + (k + x) * 4);
+				v += s * knl[R - k];
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 
 		// middle elements that fullfill the conv kernel
 		for (int x = R; x < tail_pos; x++)
 		{
-			__m128 v = _mm_setzero_ps();
+			v = v_setzero_f32();
 			for (int k = -L; k <= R; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
+				s = v_load(src + (k + x) * 4);
+				v += s * knl[R - k];
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}// end for x
 
@@ -163,13 +163,13 @@ namespace lvg
 		{
 			const int xb = std::max(-L, -x);
 			const int xe = std::min(num - x - 1, R);
-			__m128 v = _mm_setzero_ps();
+			v = v_setzero_f32();
 			for (int k = xb; k <= xe; k++)
 			{
-				s = _mm_loadu_ps(src + (k + x) * 4);
-				v = _mm_add_ps(v, _mm_mul_ps(s, knl[R - k]));
+				s = v_load(src + (k + x) * 4);
+				v += s * knl[R - k];
 			}
-			_mm_storeu_ps(dst, v);
+			v_store(dst, v);
 			dst = (float*)(((char*)dst) + dstStride);
 		}
 	}
@@ -270,8 +270,8 @@ namespace lvg
 	template<typename T, int N> void max_filter2(T* srcDst, int W, int H, int stride)
 	{
 		CachedBuffer<T> tmpBuffer(std::max(W, H));
-#ifdef LVG_ENABLE_SSE
-		CachedBuffer<__m128> tmpBuffers_sse;
+#ifdef CV_SIMD128
+		CachedBuffer<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif
@@ -286,14 +286,14 @@ namespace lvg
 		
 		// max filtering along y direction
 		int x = 0;
-#ifdef LVG_ENABLE_SSE
+#ifdef CV_SIMD128
 		if (typeid(float) == typeid(T))
 		{
 			for (; x < W - 3; x += 4)
 			{
 				char* bytePtr = (char*)(srcDst + x);
 				for (int y = 0; y < H; y++, bytePtr += stride)
-					tmpBuffers_sse[y] = _mm_loadu_ps((float*)bytePtr);
+					tmpBuffers_sse[y] = v_load((float*)bytePtr);
 				max_filter_sse<N>((float*)srcDst + x, (const float*)tmpBuffers_sse.data(), H, stride);
 			}
 		}
@@ -310,8 +310,8 @@ namespace lvg
 	template<typename T, int N> void min_filter2(T* srcDst, int W, int H, int stride)
 	{
 		CachedBuffer<T> tmpBuffer(std::max(W, H));
-#ifdef LVG_ENABLE_SSE
-		CachedBuffer<__m128> tmpBuffers_sse;
+#ifdef CV_SIMD128
+		CachedBuffer<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif
@@ -326,14 +326,14 @@ namespace lvg
 
 		// min filtering along y direction
 		int x = 0;
-#ifdef LVG_ENABLE_SSE
+#ifdef CV_SIMD128
 		if (typeid(float) == typeid(T))
 		{
 			for (; x < W - 3; x += 4)
 			{
 				char* bytePtr = (char*)(srcDst + x);
 				for (int y = 0; y < H; y++, bytePtr += stride)
-					tmpBuffers_sse[y] = _mm_loadu_ps((float*)bytePtr);
+					tmpBuffers_sse[y] = v_load((float*)bytePtr);
 				min_filter_sse<N>((float*)srcDst + x, (const float*)tmpBuffers_sse.data(), H, stride);
 			}
 		}
@@ -399,8 +399,8 @@ namespace lvg
 	template<typename T, int N> void conv2(T* srcDst, const T* kernel, int W, int H, int stride)
 	{
 		CachedBuffer<T> tmpBuffer(std::max(W, H));
-#ifdef LVG_ENABLE_SSE
-		CachedBuffer<__m128> tmpBuffers_sse;
+#ifdef CV_SIMD128
+		CachedBuffer<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif
@@ -412,17 +412,17 @@ namespace lvg
 			memcpy(tmpBuffer.data(), dstPtr, W * sizeof(T));
 			conv<T, N>(dstPtr, tmpBuffer.data(), kernel, W, sizeof(T));
 		}// end for y
-
+		
 		// conv along y direction
 		int x = 0;
-#ifdef LVG_ENABLE_SSE
+#ifdef CV_SIMD128
 		if (typeid(float) == typeid(T))
 		{
 			for (; x < W - 3; x += 4)
 			{
 				char* bytePtr = (char*)(srcDst + x);
 				for (int y = 0; y < H; y++, bytePtr += stride)
-					tmpBuffers_sse[y] = _mm_loadu_ps((float*)bytePtr);
+					tmpBuffers_sse[y] = v_load((float*)bytePtr);
 				conv_sse<N>((float*)srcDst + x, (const float*)tmpBuffers_sse.data(), kernel, H, stride);
 			}
 		}

@@ -1,8 +1,8 @@
 #include "PatchMatchCompletion.h"
-#include "lightvg\common\logger.h"
-#include "lightvg\common\timeutils.h"
-#include "lightvg\image\ConvolutionPyramid.h"
-#include "lightvg\image\opencvdebug.h"
+#include "lightvg/common/logger.h"
+#include "lightvg/common/timeutils.h"
+#include "lightvg/image/ConvolutionPyramid.h"
+#include "lightvg/image/opencvdebug.h"
 
 #define INFLATION_RATIO 3	//size of contex around the hole
 #define IS_HOLE(val) ((val) > 128)

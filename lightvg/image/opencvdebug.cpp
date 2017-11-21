@@ -1,7 +1,7 @@
 #include "opencvdebug.h"
 
 #ifdef LVG_ENABLE_OPENCV_DEBUG
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 #endif
 
 namespace lvg

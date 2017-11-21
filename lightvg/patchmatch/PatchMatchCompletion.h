@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lightvg\image\imageutils.h"
+#include "lightvg/image/imageutils.h"
 #include <vector>
 #include <numeric>
 

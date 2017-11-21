@@ -1,8 +1,8 @@
 #define LDP_ENABLE_OPENCV_DEBUG
 #include "ConvolutionPyramid.h"
 #include "convhelper.h"
-#include "lightvg\common\mathutils.h"
-#include "lightvg\common\logger.h"
+#include "lightvg/common/mathutils.h"
+#include "lightvg/common/logger.h"
 
 namespace lvg
 {

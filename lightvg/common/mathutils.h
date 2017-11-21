@@ -1,7 +1,7 @@
 #pragma once
 
 #include "definations.h"
-#include <eigen\Dense>
+#include <eigen/Dense>
 namespace lvg
 {
 	typedef unsigned char uchar;

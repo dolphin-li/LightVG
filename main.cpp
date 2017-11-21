@@ -2,12 +2,12 @@
 #include "lightvg\LightVG.hpp"
 using namespace lvg;
 
-//#define DEBUG_BOUNDARY_INTERPOLATE
+#define DEBUG_BOUNDARY_INTERPOLATE
 //#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
 //#define DEBUG_PATCHMATCH
-#define DEBUG_CONV
+//#define DEBUG_CONV
 
 int main()
 {
@@ -107,25 +107,19 @@ int main()
 #endif
 
 #ifdef DEBUG_CONV
-	ByteImage img, dst;
+	FloatImage img, dst;
 	img.create(1024, 1024);
 	img.setZero();
-	imread("a2.png", img);
 	dst.create(img.width(), img.height());
 	dst.setZero();
 
-	enum {N = 7};
+	enum {N = 11};
 	float kernel[N] = { 0 };
-	std::vector<int> bf;
+
 	lvg::tic();
 	for (int i = 0; i < 100; i++)
-		lvg::gaussianBlur_7x7(img, dst, &bf);
-		//lvg::separableConv2(img, dst, kernel, N);
+		lvg::separableConv2(img, dst, kernel, N);
 	lvg::toc();
-
-	lvg::imshow("src", img);
-	lvg::imshow("dst", dst);
-	waitKey();
 #endif
 
 	return 0;
