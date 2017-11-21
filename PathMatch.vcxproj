@@ -163,6 +163,7 @@
     <ClInclude Include="lightvg\common\CachedBuffer.h" />
     <ClInclude Include="lightvg\common\definations.h" />
     <ClInclude Include="LightVG\Common\intrin_neon.h" />
+    <ClInclude Include="lightvg\common\intrin_sse.h" />
     <ClInclude Include="LightVG\Common\logger.h" />
     <ClInclude Include="LightVG\Common\mathutils.h" />
     <ClInclude Include="lightvg\common\mempool.h" />

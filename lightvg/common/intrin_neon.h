@@ -46,6 +46,7 @@
 
 #include <algorithm>
 #include <stdint.h>
+#include <arm_neon.h>
 #define CV_HAL_ERROR_OK 0
 #define CV_HAL_ERROR_NOT_IMPLEMENTED 1
 #define CV_HAL_ERROR_UNKNOWN -1
@@ -167,6 +168,10 @@ struct v_uint8x16
     {
         return vgetq_lane_u8(val, 0);
     }
+	uchar get(int i) const
+	{
+		return vgetq_lane_u8(val, i);
+	}
 
     uint8x16_t val;
 };
@@ -188,6 +193,10 @@ struct v_int8x16
     {
         return vgetq_lane_s8(val, 0);
     }
+	schar get(int i) const
+	{
+		return vgetq_lane_s8(val, i);
+	}
 
     int8x16_t val;
 };
@@ -208,6 +217,10 @@ struct v_uint16x8
     {
         return vgetq_lane_u16(val, 0);
     }
+	ushort get(int i) const
+	{
+		return vgetq_lane_u16(val, i);
+	}
 
     uint16x8_t val;
 };
@@ -228,6 +241,10 @@ struct v_int16x8
     {
         return vgetq_lane_s16(val, 0);
     }
+	short get(int i) const
+	{
+		return vgetq_lane_s16(val, i);
+	}
 
     int16x8_t val;
 };
@@ -248,6 +265,10 @@ struct v_uint32x4
     {
         return vgetq_lane_u32(val, 0);
     }
+	unsigned get(int i) const
+	{
+		return vgetq_lane_u32(val, i);
+	}
 
     uint32x4_t val;
 };
@@ -268,6 +289,10 @@ struct v_int32x4
     {
         return vgetq_lane_s32(val, 0);
     }
+	int get(int i) const
+	{
+		return vgetq_lane_s32(val, i);
+	}
     int32x4_t val;
 };
 
@@ -287,6 +312,10 @@ struct v_float32x4
     {
         return vgetq_lane_f32(val, 0);
     }
+	float get(int i) const
+	{
+		return vgetq_lane_f32(val, i);
+	}
     float32x4_t val;
 };
 
@@ -306,6 +335,10 @@ struct v_uint64x2
     {
         return vgetq_lane_u64(val, 0);
     }
+	uint64 get(int i) const
+	{
+		return vgetq_lane_u64(val, i);
+	}
     uint64x2_t val;
 };
 
@@ -325,6 +358,10 @@ struct v_int64x2
     {
         return vgetq_lane_s64(val, 0);
     }
+	int64 get(int i) const
+	{
+		return vgetq_lane_s64(val, i);
+	}
     int64x2_t val;
 };
 
@@ -345,6 +382,10 @@ struct v_float64x2
     {
         return vgetq_lane_f64(val, 0);
     }
+	double get(int i) const
+	{
+		return vgetq_lane_f64(val, i);
+	}
     float64x2_t val;
 };
 #endif

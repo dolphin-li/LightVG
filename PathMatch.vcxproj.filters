@@ -88,5 +88,8 @@
     <ClInclude Include="lightvg\patchmatch\PatchMatchCompletion.h">
       <Filter>lightvg\patchmatch</Filter>
     </ClInclude>
+    <ClInclude Include="lightvg\common\intrin_sse.h">
+      <Filter>lightvg\common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

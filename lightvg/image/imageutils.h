@@ -4,9 +4,6 @@
 
 namespace lvg
 {
-	// copy src to dst(bl:br, bt:bb), and the border is mirrored from center
-	void copyMakeBorderReflect(const ByteImage& src, ByteImage& dst, int bl, int br, int bt, int bb);
-
 	// 5x5 Gaussian blur, neon optimized
 	void gaussianBlur_5x5(const ByteImage& src, ByteImage& dst, std::vector<int>* workBuffer = nullptr);
 

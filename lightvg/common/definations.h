@@ -23,7 +23,6 @@
 
 #if defined(__ARM_NEON)
 #define LVG_ENABLE_NEON
-#include <arm_neon.h>
 #include "intrin_neon.h"
 #endif
 
@@ -33,7 +32,7 @@
 
 #ifdef _WIN32
 #define LVG_ENABLE_SSE
-#include <xmmintrin.h>      // __m128 data type and SSE functions
+#include "intrin_sse.h"
 #endif
 
 // turn on this macro if you need opencv for debugging

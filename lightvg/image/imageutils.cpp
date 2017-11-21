@@ -3,58 +3,6 @@
 #include "convhelper.h"
 namespace lvg
 {
-	void copyMakeBorderReflect(const ByteImage& src, ByteImage& dst, int bl, int br, int bt, int bb)
-	{
-		if (src.channels() != 1) {
-			LVG_LOG(LVG_LOG_ERROR, "only one-channel image supported!");
-			return;
-		}
-		const int sW = src.width();
-		const int sH = src.height();
-		const int dW = sW + bl + br;
-		const int dH = sH + bt + bb;
-
-		if (bl >= sW || br >= sW || bt >= sH || bb >= sH) {
-			LVG_LOG(LVG_LOG_ERROR, "not supported border, too large than image size!");
-			return;
-		}
-		if (dst.width() != dW || dst.height() != dH || dst.channels() != src.channels())
-			dst.create(dW, dH);
-
-		const int bt_sH2 = bt + (sH - 1) * 2;
-		const int bl_sW2 = bl + (sW - 1) * 2;
-
-		// copy middle
-		for (int dy = 0; dy < dH; dy++)
-		{
-			int sy = 0;
-
-			// top rows
-			if (dy < bt)
-				sy = bt - dy;
-			// middle rows
-			else if (dy < bt + sH)
-				sy = dy - bt;
-			// bottom rows
-			else
-				sy = bt_sH2 - dy;
-
-			unsigned char* dstRowPtr = dst.rowPtr(dy);
-			const unsigned char* srcRowPtr = src.rowPtr(sy);
-
-			// left
-			for (int dx = 0; dx < bl; dx++)
-				dstRowPtr[dx] = srcRowPtr[bl - dx];
-
-			// middle
-			memcpy(dstRowPtr + bl, srcRowPtr, sW * sizeof(unsigned char));
-
-			// right
-			for (int dx = bl + sW; dx < dW; dx++)
-				dstRowPtr[dx] = srcRowPtr[bl_sW2 - dx];
-		} // end for dy
-	}
-
 	void gaussianBlur_7x7(const ByteImage& src, ByteImage& dst, std::vector<int>* workBuffer)
 	{
 		if (src.channels() != 1) {
@@ -137,10 +85,10 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vgetq_lane_u32(vsum[0].val, 0), vgetq_lane_u32(vsum[0].val, 1), vgetq_lane_u32(vsum[0].val, 2), vgetq_lane_u32(vsum[0].val, 3),
-					vgetq_lane_u32(vsum[1].val, 0), vgetq_lane_u32(vsum[1].val, 1), vgetq_lane_u32(vsum[1].val, 2), vgetq_lane_u32(vsum[1].val, 3),
-					vgetq_lane_u32(vsum[2].val, 0), vgetq_lane_u32(vsum[2].val, 1), vgetq_lane_u32(vsum[2].val, 2), vgetq_lane_u32(vsum[2].val, 3),
-					vgetq_lane_u32(vsum[3].val, 0), vgetq_lane_u32(vsum[3].val, 1), vgetq_lane_u32(vsum[3].val, 2), vgetq_lane_u32(vsum[3].val, 3));
+				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
+					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
+					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
+					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -250,10 +198,10 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vgetq_lane_u32(vsum[0].val, 0), vgetq_lane_u32(vsum[0].val, 1), vgetq_lane_u32(vsum[0].val, 2), vgetq_lane_u32(vsum[0].val, 3),
-					vgetq_lane_u32(vsum[1].val, 0), vgetq_lane_u32(vsum[1].val, 1), vgetq_lane_u32(vsum[1].val, 2), vgetq_lane_u32(vsum[1].val, 3),
-					vgetq_lane_u32(vsum[2].val, 0), vgetq_lane_u32(vsum[2].val, 1), vgetq_lane_u32(vsum[2].val, 2), vgetq_lane_u32(vsum[2].val, 3),
-					vgetq_lane_u32(vsum[3].val, 0), vgetq_lane_u32(vsum[3].val, 1), vgetq_lane_u32(vsum[3].val, 2), vgetq_lane_u32(vsum[3].val, 3));
+				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
+					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
+					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
+					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -357,10 +305,10 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vgetq_lane_u32(vsum[0].val, 0), vgetq_lane_u32(vsum[0].val, 1), vgetq_lane_u32(vsum[0].val, 2), vgetq_lane_u32(vsum[0].val, 3),
-					vgetq_lane_u32(vsum[1].val, 0), vgetq_lane_u32(vsum[1].val, 1), vgetq_lane_u32(vsum[1].val, 2), vgetq_lane_u32(vsum[1].val, 3),
-					vgetq_lane_u32(vsum[2].val, 0), vgetq_lane_u32(vsum[2].val, 1), vgetq_lane_u32(vsum[2].val, 2), vgetq_lane_u32(vsum[2].val, 3),
-					vgetq_lane_u32(vsum[3].val, 0), vgetq_lane_u32(vsum[3].val, 1), vgetq_lane_u32(vsum[3].val, 2), vgetq_lane_u32(vsum[3].val, 3));
+				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
+					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
+					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
+					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -452,10 +400,10 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vgetq_lane_u32(vsum[0].val, 0), vgetq_lane_u32(vsum[0].val, 1), vgetq_lane_u32(vsum[0].val, 2), vgetq_lane_u32(vsum[0].val, 3),
-					vgetq_lane_u32(vsum[1].val, 0), vgetq_lane_u32(vsum[1].val, 1), vgetq_lane_u32(vsum[1].val, 2), vgetq_lane_u32(vsum[1].val, 3),
-					vgetq_lane_u32(vsum[2].val, 0), vgetq_lane_u32(vsum[2].val, 1), vgetq_lane_u32(vsum[2].val, 2), vgetq_lane_u32(vsum[2].val, 3),
-					vgetq_lane_u32(vsum[3].val, 0), vgetq_lane_u32(vsum[3].val, 1), vgetq_lane_u32(vsum[3].val, 2), vgetq_lane_u32(vsum[3].val, 3));
+				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
+					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
+					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
+					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
