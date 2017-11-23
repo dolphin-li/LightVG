@@ -52,7 +52,7 @@ namespace lvg
 			if (m_refCount) {
 				int value = 1;
 				bool one = std::atomic_compare_exchange_strong(m_refCount, &value, value);
-				bAlloc = (!one) || (w*h != m_width*m_height);
+				bAlloc = (!one) || (w != m_width) || (h != m_height);
 			}
 			if (bAlloc)
 				release();
