@@ -48,6 +48,26 @@ namespace lvg
 		return a[0] * b[1] - a[1] * b[0];
 	}
 
+	inline float4 float3ToPoint(float3 p)
+	{
+		return float4(p[0], p[1], p[2], 1.f);
+	}
+
+	inline float4 float3ToNormal(float3 p)
+	{
+		return float4(p[0], p[1], p[2], 0.f);
+	}
+
+	// treat float4 as float3 normal vector and cross
+	inline float4 crossAsNormal(float4 a, float4 b)
+	{
+		return float4(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0], 0.f);
+	}
+	inline float3 crossAsNormal(float3 a, float3 b)
+	{
+		return float3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]);
+	}
+
 	struct KeyPoint
 	{
 		float2 pt;

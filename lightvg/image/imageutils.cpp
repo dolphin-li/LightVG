@@ -85,10 +85,11 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
-					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
-					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
-					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
+				v_uint8x16 result(
+					vsum[0].get<0>(), vsum[0].get<1>(), vsum[0].get<2>(), vsum[0].get<3>(),
+					vsum[1].get<0>(), vsum[1].get<1>(), vsum[1].get<2>(), vsum[1].get<3>(),
+					vsum[2].get<0>(), vsum[2].get<1>(), vsum[2].get<2>(), vsum[2].get<3>(),
+					vsum[3].get<0>(), vsum[3].get<1>(), vsum[3].get<2>(), vsum[3].get<3>());
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -198,10 +199,11 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
-					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
-					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
-					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
+				v_uint8x16 result(
+					vsum[0].get<0>(), vsum[0].get<1>(), vsum[0].get<2>(), vsum[0].get<3>(),
+					vsum[1].get<0>(), vsum[1].get<1>(), vsum[1].get<2>(), vsum[1].get<3>(),
+					vsum[2].get<0>(), vsum[2].get<1>(), vsum[2].get<2>(), vsum[2].get<3>(),
+					vsum[3].get<0>(), vsum[3].get<1>(), vsum[3].get<2>(), vsum[3].get<3>());
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -305,10 +307,11 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
-					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
-					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
-					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
+				v_uint8x16 result(
+					vsum[0].get<0>(), vsum[0].get<1>(), vsum[0].get<2>(), vsum[0].get<3>(),
+					vsum[1].get<0>(), vsum[1].get<1>(), vsum[1].get<2>(), vsum[1].get<3>(),
+					vsum[2].get<0>(), vsum[2].get<1>(), vsum[2].get<2>(), vsum[2].get<3>(),
+					vsum[3].get<0>(), vsum[3].get<1>(), vsum[3].get<2>(), vsum[3].get<3>());
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -400,10 +403,11 @@ namespace lvg
 				vsum[2] = (vsum[2] >> vkernel_shift);
 				vsum[3] = (vsum[3] >> vkernel_shift);
 
-				v_uint8x16 result(vsum[0].get(0), vsum[0].get(1), vsum[0].get(2), vsum[0].get(3),
-					vsum[1].get(0), vsum[1].get(1), vsum[1].get(2), vsum[1].get(3),
-					vsum[2].get(0), vsum[2].get(1), vsum[2].get(2), vsum[2].get(3),
-					vsum[3].get(0), vsum[3].get(1), vsum[3].get(2), vsum[3].get(3));
+				v_uint8x16 result(
+					vsum[0].get<0>(), vsum[0].get<1>(), vsum[0].get<2>(), vsum[0].get<3>(),
+					vsum[1].get<0>(), vsum[1].get<1>(), vsum[1].get<2>(), vsum[1].get<3>(),
+					vsum[2].get<0>(), vsum[2].get<1>(), vsum[2].get<2>(), vsum[2].get<3>(),
+					vsum[3].get<0>(), vsum[3].get<1>(), vsum[3].get<2>(), vsum[3].get<3>());
 				v_store(tmp + x, result);
 #undef VKSUM
 #else
@@ -1190,15 +1194,20 @@ namespace lvg
 				w[j] /= sumW;
 		}
 	}
-	template<class T, int Channels, int alignBytes> 
-	Image<T, Channels, alignBytes> imresizeBilinear(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
+	
+	template<class T, int Channels, int alignBytes>
+	void imresizeBilinear(const Image<T, Channels, alignBytes>& src, Image<T, Channels, alignBytes>& dst, int dstW, int dstH)
 	{
-		Image<T, Channels, alignBytes> dst;
+		if (dst.memoryOverlap(src))
+		{
+			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
+			return;
+		}
 		dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
 		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
-			return dst;
+			return;
 		const float scalex = (float)srcW / (float)dstW;
 		const float scaley = (float)srcH / (float)dstH;
 		CachedBuffer<int> tmpBuffer(2 * dstW);
@@ -1228,7 +1237,7 @@ namespace lvg
 				sy = std::max(0, srcH - 2);
 				fy = 1.f;
 			}
-			
+
 			T* pDst_row = dst.rowPtr(y);
 			const T* pSrc0_row = src.rowPtr(sy);
 			const T* pSrc1_row = src.rowPtr(sy + 1);
@@ -1249,18 +1258,30 @@ namespace lvg
 					pdst[c] = T(a00 * psrc00[c] + a01 * psrc01[c] + a11 * psrc11[c] + a10 * psrc10[c]);
 			}//end for x
 		}//end for y
-
-		return dst;
 	}
+
 	template<class T, int Channels, int alignBytes> 
-	Image<T, Channels, alignBytes> imresizeNearest(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
+	Image<T, Channels, alignBytes> imresizeBilinear(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
 	{
 		Image<T, Channels, alignBytes> dst;
+		dst.create(dstW, dstH);
+		imresizeBilinear(src, dst, dstW, dstH);
+		return dst;
+	}
+
+	template<class T, int Channels, int alignBytes>
+	void imresizeNearest(const Image<T, Channels, alignBytes>& src, Image<T, Channels, alignBytes>& dst, int dstW, int dstH)
+	{
+		if (dst.memoryOverlap(src))
+		{
+			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
+			return;
+		}
 		dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
 		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
-			return dst;
+			return;
 		const float scalex = (float)srcW / (float)dstW;
 		const float scaley = (float)srcH / (float)dstH;
 
@@ -1272,7 +1293,24 @@ namespace lvg
 		{
 			T* pDst_row = dst.rowPtr(y);
 			const T* pSrc_row = src.rowPtr(std::min(int(y*scaley), srcH - 1));
-			for (int x = 0; x < dstW; x++)
+			int x = 0;
+#ifdef CV_SIMD128
+			if (sizeof(T)*Channels == 4)
+			{
+				v_int32x4 vsrc;
+				for (; x < dstW - 3; x += 4)
+				{
+					int* pdst = (int*)(pDst_row) + x;
+					const int* psrc0 = (int*)(pSrc_row + x_ofs[x + 0]);
+					const int* psrc1 = (int*)(pSrc_row + x_ofs[x + 1]);
+					const int* psrc2 = (int*)(pSrc_row + x_ofs[x + 2]);
+					const int* psrc3 = (int*)(pSrc_row + x_ofs[x + 3]);
+					vsrc = v_int32x4(*psrc0, *psrc1, *psrc2, *psrc3);
+					v_store(pdst, vsrc);
+				}//end for x
+			}
+#endif
+			for (; x < dstW; x++)
 			{
 				T* pdst = pDst_row + x * Channels;
 				const T* psrc = pSrc_row + x_ofs[x];
@@ -1280,19 +1318,30 @@ namespace lvg
 					pdst[c] = psrc[c];
 			}//end for x
 		}//end for y
-
-		return dst;
 	}
+
 	template<class T, int Channels, int alignBytes> 
-	Image<T, Channels, alignBytes> imresizeLanczos3(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
+	Image<T, Channels, alignBytes> imresizeNearest(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
 	{
 		Image<T, Channels, alignBytes> dst;
 		dst.create(dstW, dstH);
-
+		imresizeNearest(src, dst, dstW, dstH);
+		return dst;
+	}
+	
+	template<class T, int Channels, int alignBytes>
+	void imresizeLanczos3(const Image<T, Channels, alignBytes>& src, Image<T, Channels, alignBytes>& dst, int dstW, int dstH)
+	{
+		if (dst.memoryOverlap(src))
+		{
+			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
+			return;
+		}
+		dst.create(dstW, dstH);
 		if (dst.width() == 0 || dst.height() == 0 || src.width() == 0 || src.height() == 0)
-			return dst;
+			return;
 
-		Image<float, Channels> imTmp;
+		Image<float, Channels, alignBytes> imTmp;
 		imTmp.create(dstW, src.height());
 		dst.setZero();
 		imTmp.setZero();
@@ -1315,7 +1364,7 @@ namespace lvg
 				for (size_t j = 0; j<weights.size(); j++)
 				{
 					const int ij = idx[j];
-					for(int c = 0; c < Channels; c++)
+					for (int c = 0; c < Channels; c++)
 						pTmp[x*Channels + c] += pSrc[ij*Channels + c] * weights[j];
 				}
 			}//end for x
@@ -1329,14 +1378,14 @@ namespace lvg
 				const std::vector<float>& weights = weightsY[y];
 				const std::vector<int>& idx = idxY[y];
 
-				Image<float, Channels>::VecType t = Image<float, Channels>::VecType::Zero();
+				typename Image<float, Channels, alignBytes>::VecType t = Image<float, Channels, alignBytes>::VecType::Zero();
 				for (size_t j = 0; j<weights.size(); j++)
 				{
-					const Image<float, Channels>::VecType& pixelTmp = imTmp.pixel(Point(x, idx[j]));
-					for(int c = 0; c < Channels; c++)
+					const typename Image<float, Channels, alignBytes>::VecType& pixelTmp = imTmp.pixel(Point(x, idx[j]));
+					for (int c = 0; c < Channels; c++)
 						t[c] += pixelTmp[c] * weights[j];
 				}
-				Image<T, Channels>::VecType& pixelDst = dst.pixel(Point(x, y));
+				typename Image<T, Channels, alignBytes>::VecType& pixelDst = dst.pixel(Point(x, y));
 				if (typeid(T) == typeid(uchar))
 				{
 					for (int c = 0; c < Channels; c++)
@@ -1349,12 +1398,21 @@ namespace lvg
 				}
 			}//end for y
 		}//end for x
+	}
+
+	template<class T, int Channels, int alignBytes> 
+	Image<T, Channels, alignBytes> imresizeLanczos3(const Image<T, Channels, alignBytes>& src, int dstW, int dstH)
+	{
+		Image<T, Channels, alignBytes> dst;
+		dst.create(dstW, dstH);
+
+		imresizeLanczos3(src, dst, dstW, dstH);
 
 		return dst;
 	}
 	
 	template<class T, int C, int alignBytes> Image<T, C, alignBytes> 
-		imresizeT(const Image<T, C, alignBytes>& src, int dstW, int dstH, ResizeMethod m)
+	imresizeT(const Image<T, C, alignBytes>& src, int dstW, int dstH, ResizeMethod m)
 	{
 		switch (m)
 		{
@@ -1364,6 +1422,23 @@ namespace lvg
 			return imresizeNearest<T, C, alignBytes>(src, dstW, dstH);
 		case lvg::ResizeLanczos3:
 			return imresizeLanczos3<T, C, alignBytes>(src, dstW, dstH);
+		default:
+			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
+			throw std::exception();
+		}
+	}
+
+	template<class T, int C, int alignBytes> void
+	imresizeT(const Image<T, C, alignBytes>& src, Image<T, C, alignBytes>& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		switch (m)
+		{
+		case lvg::ResizeLinear:
+			return imresizeBilinear<T, C, alignBytes>(src, dst, dstW, dstH);
+		case lvg::ResizeNearest:
+			return imresizeNearest<T, C, alignBytes>(src, dst, dstW, dstH);
+		case lvg::ResizeLanczos3:
+			return imresizeLanczos3<T, C, alignBytes>(src, dst, dstW, dstH);
 		default:
 			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
 			throw std::exception();
@@ -1397,6 +1472,35 @@ namespace lvg
 	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m)
 	{
 		return imresizeT(src, dstW, dstH, m);
+	}
+
+	void imresize(const ByteImage& src, ByteImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const IntImage& src, IntImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const FloatImage& src, FloatImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const RgbImage& src, RgbImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const RgbaImage& src, RgbaImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const RgbFloatImage& src, RgbFloatImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
+	}
+	void imresize(const RgbaFloatImage& src, RgbaFloatImage& dst, int dstW, int dstH, ResizeMethod m)
+	{
+		imresizeT(src, dst, dstW, dstH, m);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1697,5 +1801,93 @@ namespace lvg
 		{
 			converter((const float*)imgLab.rowPtr(y), (uchar*)imgRgb.rowPtr(y), nWidth);
 		}
+	}
+
+	void rgba2bgra(const RgbaImage& src, RgbaImage& dst)
+	{
+		if (!dst.sameShape(src))
+			dst.create(src.width(), src.height());
+		const int W = src.width(), H = src.height();
+		const int n = W * 4;
+		for (int y = 0; y < H; y++)
+		{
+			const uchar* pSrc = src.rowPtr(y);
+			uchar* pDst = dst.rowPtr(y);
+			int x = 0;
+#if CV_NEON
+			for (; x <= n - 64; x += 64)
+			{
+				uint8x16x4_t v_src = vld4q_u8(src + i), v_dst;
+				v_dst.val[0] = v_src.val[2];
+				v_dst.val[1] = v_src.val[1];
+				v_dst.val[2] = v_src.val[0];
+				v_dst.val[3] = v_src.val[3];
+				vst4q_u8(dst + x, v_dst);
+			}
+			for (; x <= n - 32; x += 32)
+			{
+				uint8x8x4_t v_src = vld4_u8(src + i), v_dst;
+				v_dst.val[0] = v_src.val[2];
+				v_dst.val[1] = v_src.val[1];
+				v_dst.val[2] = v_src.val[0];
+				v_dst.val[3] = v_src.val[3];
+				vst4_u8(dst + x, v_dst);
+			}
+#endif
+			for (; x < n; x += 4)
+			{
+				uchar c0, c1, c2, c3;
+				c0 = pSrc[x + 0];
+				c1 = pSrc[x + 1];
+				c2 = pSrc[x + 2];
+				c3 = pSrc[x + 3];
+				pDst[x + 2] = c0;
+				pDst[x + 1] = c1;
+				pDst[x + 0] = c2;
+				pDst[x + 3] = c3;
+			} // x
+		} // y
+	}
+
+	void imtranspose(const FloatImage& src, FloatImage& dst)
+	{
+		if (dst.memoryOverlap(src))
+		{
+			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
+			return;
+		}
+		const int sW = src.width();
+		const int sH = src.height();
+
+		if(dst.width() != sH || dst.height() != sW)
+			dst.create(sH, sW);
+		int dy = 0;
+
+#ifdef CV_SIMD128
+		v_float32x4 vsrc;
+		for (; dy < sW - 3; dy += 4)
+		{
+			float* pDstRow0 = dst.rowPtr(dy + 0);
+			float* pDstRow1 = dst.rowPtr(dy + 1);
+			float* pDstRow2 = dst.rowPtr(dy + 2);
+			float* pDstRow3 = dst.rowPtr(dy + 3);
+			for (int dx = 0; dx < sH; dx++)
+			{
+				vsrc = v_load(src.rowPtr(dx) + dy);
+				pDstRow0[dx] = vsrc.get<0>();
+				pDstRow1[dx] = vsrc.get<1>();
+				pDstRow2[dx] = vsrc.get<2>();
+				pDstRow3[dx] = vsrc.get<3>();
+			} // end for x
+		} // end for dy
+#endif
+		for (; dy < sW; dy++)
+		{
+			float* pDstRow = dst.rowPtr(dy);
+			for (int dx = 0; dx < sH; dx++)
+			{
+				pDstRow[dx] = src.rowPtr(dx)[dy];
+			} // end for x
+		} // end for dy
 	}
 }

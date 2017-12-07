@@ -2,31 +2,31 @@
 #include "lightvg\LightVG.hpp"
 using namespace lvg;
 
-//#define DEBUG_BOUNDARY_INTERPOLATE
+#define DEBUG_BOUNDARY_INTERPOLATE
 //#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
 //#define DEBUG_PATCHMATCH
-#define DEBUG_CONV
+//#define DEBUG_CONV
 
 int main()
 {
 #ifdef DEBUG_BOUNDARY_INTERPOLATE
 	{
-		RgbImage src, dst;
+		ByteImage src;
 		ByteImage mask;
-		imread("a3.png", src);
-		imread("a1.jpg", dst);
-		imread("a2.png", mask);
-		mask *= -1;
-		mask += 255;
+		imread("gray.png", src);
+		imread("graymask.png", mask);
+
+		FloatImage fsrc;
+		src.convertTo(fsrc, 1.f, 0.f);
 		
 		tic();
 		ConvolutionPyramid conv;
-		conv.blendImage(dst, src, mask);
+		conv.fillHole(fsrc, mask);
 		toc();
 
-		imwrite("result.png", dst);
+		imwrite("result.png", fsrc);
 }
 #endif
 

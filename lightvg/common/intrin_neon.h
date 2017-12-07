@@ -49,7 +49,7 @@
 #include <arm_neon.h>
 namespace lvg
 {
-
+#define CV_NEON 1
 #define CV_HAL_ERROR_OK 0
 #define CV_HAL_ERROR_NOT_IMPLEMENTED 1
 #define CV_HAL_ERROR_UNKNOWN -1
@@ -171,9 +171,15 @@ struct v_uint8x16
     {
         return vgetq_lane_u8(val, 0);
     }
-	uchar get(int i) const
+	template<int i>
+	uchar get() const
 	{
 		return vgetq_lane_u8(val, i);
+	}
+	template<int i>
+	void set(uchar v)
+	{
+		val = vsetq_lane_u8(v, val, i);
 	}
 
     uint8x16_t val;
@@ -196,9 +202,15 @@ struct v_int8x16
     {
         return vgetq_lane_s8(val, 0);
     }
-	schar get(int i) const
+	template<int i>
+	schar get() const
 	{
 		return vgetq_lane_s8(val, i);
+	}
+	template<int i>
+	void set(schar v)
+	{
+		val = vsetq_lane_s8(v, val, i);
 	}
 
     int8x16_t val;
@@ -220,9 +232,15 @@ struct v_uint16x8
     {
         return vgetq_lane_u16(val, 0);
     }
-	ushort get(int i) const
+	template<int i>
+	ushort get() const
 	{
 		return vgetq_lane_u16(val, i);
+	}
+	template<int i>
+	void set(ushort v)
+	{
+		val = vsetq_lane_u16(v, val, i);
 	}
 
     uint16x8_t val;
@@ -244,9 +262,15 @@ struct v_int16x8
     {
         return vgetq_lane_s16(val, 0);
     }
-	short get(int i) const
+	template<int i>
+	short get() const
 	{
 		return vgetq_lane_s16(val, i);
+	}
+	template<int i>
+	void set(short v)
+	{
+		val = vsetq_lane_s16(v, val, i);
 	}
 
     int16x8_t val;
@@ -268,9 +292,15 @@ struct v_uint32x4
     {
         return vgetq_lane_u32(val, 0);
     }
-	unsigned get(int i) const
+	template<int i>
+	uint get() const
 	{
 		return vgetq_lane_u32(val, i);
+	}
+	template<int i>
+	void set(uint v)
+	{
+		val = vsetq_lane_u32(v, val, i);
 	}
 
     uint32x4_t val;
@@ -292,9 +322,15 @@ struct v_int32x4
     {
         return vgetq_lane_s32(val, 0);
     }
-	int get(int i) const
+	template<int i>
+	int get() const
 	{
 		return vgetq_lane_s32(val, i);
+	}
+	template<int i>
+	void set(int v)
+	{
+		val = vsetq_lane_s32(v, val, i);
 	}
     int32x4_t val;
 };
@@ -315,9 +351,15 @@ struct v_float32x4
     {
         return vgetq_lane_f32(val, 0);
     }
-	float get(int i) const
+	template<int i>
+	float get() const
 	{
 		return vgetq_lane_f32(val, i);
+	}
+	template<int i>
+	void set(float v)
+	{
+		val = vsetq_lane_f32(v, val, i);
 	}
     float32x4_t val;
 };
@@ -338,9 +380,15 @@ struct v_uint64x2
     {
         return vgetq_lane_u64(val, 0);
     }
-	uint64 get(int i) const
+	template<int i>
+	uint64 get() const
 	{
 		return vgetq_lane_u64(val, i);
+	}
+	template<int i>
+	void set(uint64 v)
+	{
+		val = vsetq_lane_u64(v, val, i);
 	}
     uint64x2_t val;
 };
@@ -361,9 +409,15 @@ struct v_int64x2
     {
         return vgetq_lane_s64(val, 0);
     }
-	int64 get(int i) const
+	template<int i>
+	int64 get() const
 	{
 		return vgetq_lane_s64(val, i);
+	}
+	template<int i>
+	void set(int64 v)
+	{
+		val = vsetq_lane_s64(v, val, i);
 	}
     int64x2_t val;
 };
@@ -385,9 +439,15 @@ struct v_float64x2
     {
         return vgetq_lane_f64(val, 0);
     }
-	double get(int i) const
+	template<int i>
+	double get() const
 	{
 		return vgetq_lane_f64(val, i);
+	}
+	template<int i>
+	void set(double v)
+	{
+		val = vsetq_lane_f64(v, val, i);
 	}
     float64x2_t val;
 };

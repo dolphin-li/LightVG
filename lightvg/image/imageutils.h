@@ -45,7 +45,21 @@ namespace lvg
 	RgbFloatImage imresize(const RgbFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 	RgbaFloatImage imresize(const RgbaFloatImage& src, int dstW, int dstH, ResizeMethod m = ResizeLinear);
 
+	void imresize(const ByteImage& src, ByteImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const IntImage& src, IntImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const FloatImage& src, FloatImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const RgbImage& src, RgbImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const RgbaImage& src, RgbaImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const RgbFloatImage& src, RgbFloatImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+	void imresize(const RgbaFloatImage& src, RgbaFloatImage& dst, int dstW, int dstH, ResizeMethod m = ResizeLinear);
+
 	// color conversion
 	void sRgb2Lab(const RgbImage& imgRgb, RgbFloatImage& imgLab);
 	void Lab2sRgb(const RgbFloatImage& imgLab, RgbImage& imgRgb);
+
+	// rgba <-> bgra, neon/sse optimized
+	void rgba2bgra(const RgbaImage& src, RgbaImage& dst);
+
+	// transpose
+	void imtranspose(const FloatImage& src, FloatImage& dst);
 } // lvg

@@ -17,8 +17,10 @@
 #elif defined(LVG_OS_MAC)
 // http://developer.apple.com/qa/qa2004/qa1398.html
 #include <mach/mach_time.h>
+#include <unistd.h>
 #elif defined(LVG_OS_LNX)
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #if defined(__ARM_NEON)

@@ -62,7 +62,10 @@ namespace lvg
 
 		int pos = LocateBucket(num_bytes);
 		if (pos < 0 || pos >= NumBuckets)
-			throw::std::exception("error: not supported size in thrust_wrapper::cached_allocator()");
+		{
+			printf("error: not supported size in thrust_wrapper::cached_allocator()");
+			return nullptr;
+		}
 
 		size_t nAllocate = BucketSizes[pos];
 
@@ -82,17 +85,7 @@ namespace lvg
 		else
 		{
 			// no allocation of the right size exists
-			// create a new one with cuda::malloc
-			// throw if cuda::malloc can't satisfy the request
-			try
-			{
-				//std::cout << "cached_allocator::allocator(): no free block found; calling cuda::malloc" << std::endl;
-				result = (char*)aligned_malloc(nAllocate, ALIGN_BYTES);
-			}
-			catch (std::runtime_error &e)
-			{
-				throw e;
-			}
+			result = (char*)aligned_malloc(nAllocate, ALIGN_BYTES);
 		}
 
 		// insert the allocated pointer into the allocated_blocks map

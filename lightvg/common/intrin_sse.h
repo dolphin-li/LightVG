@@ -51,7 +51,7 @@
 
 namespace lvg
 {
-
+#define CV_SSE 1
 #define CV_HAL_ERROR_OK 0
 #define CV_HAL_ERROR_NOT_IMPLEMENTED 1
 #define CV_HAL_ERROR_UNKNOWN -1
@@ -185,9 +185,16 @@ struct v_uint8x16
 		return (uchar)_mm_cvtsi128_si32(val);
 	}
 
-	uchar get(int i) const
+	template<int i>
+	uchar get() const
 	{
 		return val.m128i_u8[i];
+	}
+
+	template<int i>
+	void set(uchar v)
+	{
+		val.m128i_u8[i] = v;
 	}
 
 	__m128i val;
@@ -213,9 +220,16 @@ struct v_int8x16
 		return (schar)_mm_cvtsi128_si32(val);
 	}
 
-	schar get(int i) const
+	template<int i>
+	schar get() const
 	{
 		return val.m128i_i8[i];
+	}
+
+	template<int i>
+	void set(schar v)
+	{
+		val.m128i_i8[i] = v;
 	}
 
 	__m128i val;
@@ -238,9 +252,16 @@ struct v_uint16x8
 		return (ushort)_mm_cvtsi128_si32(val);
 	}
 
-	ushort get(int i) const
+	template<int i>
+	ushort get() const
 	{
 		return val.m128i_u16[i];
+	}
+
+	template<int i>
+	void set(ushort v)
+	{
+		val.m128i_u16[i] = v;
 	}
 
 	__m128i val;
@@ -262,10 +283,17 @@ struct v_int16x8
 	{
 		return (short)_mm_cvtsi128_si32(val);
 	}
-
-	short get(int i) const
+	
+	template<int i>
+	short get() const
 	{
 		return val.m128i_i16[i];
+	}
+
+	template<int i>
+	void set(short v)
+	{
+		val.m128i_i16[i] = v;
 	}
 
 	__m128i val;
@@ -286,10 +314,17 @@ struct v_uint32x4
 	{
 		return (unsigned)_mm_cvtsi128_si32(val);
 	}
-
-	uint get(int i) const
+	
+	template<int i>
+	uint get() const
 	{
 		return val.m128i_u32[i];
+	}
+
+	template<int i>
+	void set(uint v)
+	{
+		val.m128i_u32[i] = v;
 	}
 
 	__m128i val;
@@ -311,9 +346,16 @@ struct v_int32x4
 		return _mm_cvtsi128_si32(val);
 	}
 
-	int get(int i) const
+	template<int i>
+	int get() const
 	{
 		return val.m128i_i32[i];
+	}
+
+	template<int i>
+	void set(int v)
+	{
+		val.m128i_i32[i] = v;
 	}
 
 	__m128i val;
@@ -335,9 +377,16 @@ struct v_float32x4
 		return _mm_cvtss_f32(val);
 	}
 
-	float get(int i) const
+	template<int i>
+	float get() const
 	{
 		return val.m128_f32[i];
+	}
+
+	template<int i>
+	void set(float v)
+	{
+		val.m128i_f32[i] = v;
 	}
 
 	__m128 val;
@@ -361,9 +410,16 @@ struct v_uint64x2
 		return (unsigned)a | ((uint64)(unsigned)b << 32);
 	}
 
-	uint64 get(int i) const
+	template<int i>
+	uint64 get() const
 	{
 		return val.m128i_u64[i];
+	}
+
+	template<int i>
+	void set(uint64 v)
+	{
+		val.m128i_u64[i] = v;
 	}
 
 	__m128i val;
@@ -387,9 +443,16 @@ struct v_int64x2
 		return (int64)((unsigned)a | ((uint64)(unsigned)b << 32));
 	}
 
-	int64 get(int i) const
+	template<int i>
+	int64 get() const
 	{
 		return val.m128i_i64[i];
+	}
+
+	template<int i>
+	void set(int64 v)
+	{
+		val.m128i_i64[i] = v;
 	}
 
 	__m128i val;
@@ -411,9 +474,16 @@ struct v_float64x2
 		return _mm_cvtsd_f64(val);
 	}
 
-	double get(int i) const
+	template<int i>
+	double get() const
 	{
 		return val.m128d_f64[i];
+	}
+
+	template<int i>
+	void set(double v)
+	{
+		val.m128i_f64[i] = v;
 	}
 
 	__m128d val;

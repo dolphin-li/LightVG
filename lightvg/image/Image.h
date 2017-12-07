@@ -2,8 +2,6 @@
 
 #include "lightvg/common/mathutils.h"
 #include <vector>
-#include <atomic>
-
 
 namespace lvg
 {
@@ -37,7 +35,7 @@ namespace lvg
 			m_dataAlloc = r.m_dataAlloc;
 			m_refCount = r.m_refCount;
 			if (m_refCount)
-				std::atomic_fetch_add(m_refCount, 1);
+				*m_refCount++;
 		}
 
 		~Image()
@@ -49,17 +47,14 @@ namespace lvg
 		Image& create(int w, int h)
 		{
 			bool bAlloc = true;
-			if (m_refCount) {
-				int value = 1;
-				bool one = std::atomic_compare_exchange_strong(m_refCount, &value, value);
-				bAlloc = (!one) || (w != m_width) || (h != m_height);
-			}
+			if (m_refCount)
+				bAlloc = (*m_refCount != 1) || (w != m_width) || (h != m_height);
 			if (bAlloc)
 				release();
 			m_width = w;
 			m_height = h;
 			if (bAlloc) {
-				m_refCount = new std::atomic<int>(1);
+				m_refCount = new int(1);
 				m_stride = (w*Channels * sizeof(T) + ALIGN_BYTES - 1) / ALIGN_BYTES * ALIGN_BYTES;
 				m_data = (T*)aligned_malloc(h*m_stride);
 				m_dataAlloc = m_data;
@@ -83,8 +78,7 @@ namespace lvg
 		{
 			if (m_refCount)
 			{
-				int oldVal = std::atomic_fetch_sub(m_refCount, 1);
-				if (oldVal == 1)
+				if (*m_refCount == 1)
 				{
 					if (m_dataAlloc)
 						aligned_free(m_dataAlloc);
@@ -120,7 +114,7 @@ namespace lvg
 			m_dataAlloc = r.m_dataAlloc;
 			m_refCount = r.m_refCount;
 			if (m_refCount)
-				std::atomic_fetch_add(m_refCount, 1);
+				*m_refCount++;
 			return *this;
 		}
 
@@ -228,8 +222,8 @@ namespace lvg
 			return *this;
 		}
 
-		template<class E>
-		void convertTo(Image<E, Channels>& dst, E alpha = E(1), E beta = E(0))const
+		template<class E, int alignBytes1 = sizeof(E)>
+		void convertTo(Image<E, Channels, alignBytes1>& dst, E alpha = E(1), E beta = E(0))const
 		{
 			if (dst.width() != m_width || dst.height() != m_height)
 				dst.create(m_width, m_height);
@@ -480,7 +474,7 @@ namespace lvg
 			r.m_dataAlloc = m_dataAlloc;
 			r.m_refCount = m_refCount;
 			if (m_refCount)
-				std::atomic_fetch_add(m_refCount, 1);
+				*m_refCount++;
 			return r;
 		}
 
@@ -492,8 +486,8 @@ namespace lvg
 		bool empty()const { return m_data == nullptr; }
 
 		bool memoryOverlap(const Image& r)const {
-			return (m_data > r.m_data && m_data < r.m_data + r.m_stride*r.m_height)
-				|| (r.m_data > m_data && r.m_data < m_data + m_stride*m_height);
+			return (m_data > r.m_data && (uchar*)m_data < (uchar*)r.m_data + r.m_stride*r.m_height)
+				|| (r.m_data > m_data && (uchar*)r.m_data < (uchar*)m_data + m_stride*m_height);
 		}
 
 		bool sameWith(const Image& r)const
@@ -550,7 +544,7 @@ namespace lvg
 		int m_width;
 		int m_height;
 		int m_stride;
-		std::atomic<int>* m_refCount;
+		mutable int* m_refCount;
 	};
 
 	typedef Image<uchar, 1, 4> ByteImage;

@@ -548,8 +548,8 @@ namespace lvg
 			}//end for x
 			if ((float)sum >= cutoff)
 				return cutoff;
-			src1 = (const SrcVecType*)((const byte*)src1 + stride1);
-			src2 = (const SrcVecType*)((const byte*)src2 + stride2);
+			src1 = (const SrcVecType*)((const uchar*)src1 + stride1);
+			src2 = (const SrcVecType*)((const uchar*)src2 + stride2);
 		}
 		return (float)sum;
 	}
@@ -581,8 +581,8 @@ namespace lvg
 			}//end for x
 			if ((float)sum >= cutoff)
 				return cutoff;
-			src1 = (const SrcVecType*)((const byte*)src1 + stride1);
-			src2 = (const SrcVecType*)((const byte*)src2 + stride2);
+			src1 = (const SrcVecType*)((const uchar*)src1 + stride1);
+			src2 = (const SrcVecType*)((const uchar*)src2 + stride2);
 		}
 		return (float)sum;
 	}
