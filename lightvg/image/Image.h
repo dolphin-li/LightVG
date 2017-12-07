@@ -35,7 +35,7 @@ namespace lvg
 			m_dataAlloc = r.m_dataAlloc;
 			m_refCount = r.m_refCount;
 			if (m_refCount)
-				*m_refCount++;
+				m_refCount[0]++;
 		}
 
 		~Image()
@@ -114,7 +114,7 @@ namespace lvg
 			m_dataAlloc = r.m_dataAlloc;
 			m_refCount = r.m_refCount;
 			if (m_refCount)
-				*m_refCount++;
+				m_refCount[0]++;
 			return *this;
 		}
 
@@ -474,7 +474,7 @@ namespace lvg
 			r.m_dataAlloc = m_dataAlloc;
 			r.m_refCount = m_refCount;
 			if (m_refCount)
-				*m_refCount++;
+				m_refCount[0]++;
 			return r;
 		}
 

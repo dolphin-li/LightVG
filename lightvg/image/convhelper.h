@@ -1,7 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include "lightvg/common/CachedBuffer.h"
+#include <vector>
+#include "lightvg\common\definations.h"
 
 #pragma push_macro("min")
 #pragma push_macro("max")
@@ -315,9 +316,9 @@ namespace lvg
 
 	template<typename T, int N> void max_filter2(T* srcDst, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(std::max(W, H));
+		std::vector<T> tmpBuffer(std::max(W, H));
 #ifdef CV_SIMD128
-		CachedBuffer<v_float32x4> tmpBuffers_sse;
+		std::vector<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif
@@ -355,9 +356,9 @@ namespace lvg
 
 	template<typename T, int N> void min_filter2(T* srcDst, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(std::max(W, H));
+		std::vector<T> tmpBuffer(std::max(W, H));
 #ifdef CV_SIMD128
-		CachedBuffer<v_float32x4> tmpBuffers_sse;
+		std::vector<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif
@@ -444,9 +445,9 @@ namespace lvg
 
 	template<typename T, int N> void conv2(T* srcDst, const T* kernel, int W, int H, int stride)
 	{
-		CachedBuffer<T> tmpBuffer(std::max(W, H));
+		std::vector<T> tmpBuffer(std::max(W, H));
 #ifdef CV_SIMD128
-		CachedBuffer<v_float32x4> tmpBuffers_sse;
+		std::vector<v_float32x4> tmpBuffers_sse;
 		if (typeid(T) == typeid(float))
 			tmpBuffers_sse.resize(std::max(W, H));
 #endif

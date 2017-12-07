@@ -1210,7 +1210,7 @@ namespace lvg
 			return;
 		const float scalex = (float)srcW / (float)dstW;
 		const float scaley = (float)srcH / (float)dstH;
-		CachedBuffer<int> tmpBuffer(2 * dstW);
+		std::vector<int> tmpBuffer(2 * dstW);
 		int* xofs = (int*)tmpBuffer.data();
 		float* xws = (float*)(xofs + dstW);
 		for (int x = 0; x < dstW; x++)
@@ -1285,7 +1285,7 @@ namespace lvg
 		const float scalex = (float)srcW / (float)dstW;
 		const float scaley = (float)srcH / (float)dstH;
 
-		CachedBuffer<int> x_ofs(dstW);
+		std::vector<int> x_ofs(dstW);
 		for (int x = 0; x < dstW; x++)
 			x_ofs[x] = std::min(int(x*scalex), srcW - 1)*Channels;
 
