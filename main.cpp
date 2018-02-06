@@ -13,20 +13,21 @@ int main()
 {
 #ifdef DEBUG_BOUNDARY_INTERPOLATE
 	{
-		ByteImage src;
+		RgbImage src;
 		ByteImage mask;
-		imread("gray.png", src);
-		imread("graymask.png", mask);
-
-		FloatImage fsrc;
-		src.convertTo(fsrc, 1.f, 0.f);
+		imread("shi.png", src);
+		imread("shi_mask.png", mask);
 		
+		mask *= -1;
+		mask += 255;
+		//lvg::maxFilter(mask, mask, 5);
+
 		tic();
 		ConvolutionPyramid conv;
-		conv.fillHole(fsrc, mask);
+		conv.fillHole(src, mask);
 		toc();
 
-		imwrite("result.png", fsrc);
+		imwrite("result.png", src);
 }
 #endif
 

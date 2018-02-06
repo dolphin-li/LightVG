@@ -84,6 +84,8 @@ namespace lvg
 						aligned_free(m_dataAlloc);
 					delete m_refCount;
 				}
+				else if (m_refCount[0] > 1)
+					m_refCount[0]--;
 			}
 			m_width = 0;
 			m_height = 0;
