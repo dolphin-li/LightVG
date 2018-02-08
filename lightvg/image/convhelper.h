@@ -1,13 +1,16 @@
-#pragma once
+#ifndef __LVG_CONVHELPER_H__
+#define __LVG_CONVHELPER_H__
 
 #include <algorithm>
 #include <vector>
-#include "lightvg\common\definations.h"
+#include "lightvg/common/definations.h"
 
+#ifdef _WIN32
 #pragma push_macro("min")
 #pragma push_macro("max")
 #undef min
 #undef max
+#endif
 namespace lvg
 {
 #ifdef CV_SIMD128
@@ -495,5 +498,9 @@ namespace lvg
 		}// end for x
 	}
 }
+#ifdef _WIN32
 #pragma pop_macro("max")
 #pragma pop_macro("min")
+#endif
+
+#endif

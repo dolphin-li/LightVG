@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "lightvg\LightVG.hpp"
+#include "lightvg/LightVG.hpp"
 using namespace lvg;
 
 #define DEBUG_BOUNDARY_INTERPOLATE

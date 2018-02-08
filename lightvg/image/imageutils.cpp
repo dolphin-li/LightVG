@@ -1203,7 +1203,8 @@ namespace lvg
 			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
 			return;
 		}
-		dst.create(dstW, dstH);
+		if(dstW != dst.width() || dstH != dst.height())
+			dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
 		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
@@ -1277,7 +1278,8 @@ namespace lvg
 			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
 			return;
 		}
-		dst.create(dstW, dstH);
+		if(dstW != dst.width() || dstH != dst.height())
+			dst.create(dstW, dstH);
 		const int srcH = src.height();
 		const int srcW = src.width();
 		if (dstW == 0 || dstH == 0 || srcW == 0 || srcH == 0)
@@ -1337,7 +1339,8 @@ namespace lvg
 			LVG_LOG(lvg::LVG_LOG_ERROR, "src and dst cannot share memory");
 			return;
 		}
-		dst.create(dstW, dstH);
+		if(dstW != dst.width() || dstH != dst.height())
+			dst.create(dstW, dstH);
 		if (dst.width() == 0 || dst.height() == 0 || src.width() == 0 || src.height() == 0)
 			return;
 
@@ -1424,7 +1427,7 @@ namespace lvg
 			return imresizeLanczos3<T, C, alignBytes>(src, dstW, dstH);
 		default:
 			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
-			throw std::exception();
+			return Image<T, C, alignBytes>();
 		}
 	}
 
@@ -1441,7 +1444,7 @@ namespace lvg
 			return imresizeLanczos3<T, C, alignBytes>(src, dst, dstW, dstH);
 		default:
 			LVG_LOG(LVG_LOG_ERROR, "non supported resize method");
-			throw std::exception();
+			return;
 		}
 	}
 
@@ -1814,7 +1817,7 @@ namespace lvg
 			const uchar* pSrc = src.rowPtr(y);
 			uchar* pDst = dst.rowPtr(y);
 			int x = 0;
-#if CV_NEON
+#if 0
 			for (; x <= n - 64; x += 64)
 			{
 				uint8x16x4_t v_src = vld4q_u8(src + i), v_dst;

@@ -1,6 +1,8 @@
-#pragma once
+#ifndef __LVGIMAGE_H__
+#define __LVGIMAGE_H__
 
 #include "lightvg/common/mathutils.h"
+#include "lightvg/common/logger.h"
 #include <vector>
 
 namespace lvg
@@ -78,7 +80,7 @@ namespace lvg
 		{
 			if (m_refCount)
 			{
-				if (*m_refCount == 1)
+				if (m_refCount[0] == 1)
 				{
 					if (m_dataAlloc)
 						aligned_free(m_dataAlloc);
@@ -86,6 +88,8 @@ namespace lvg
 				}
 				else if (m_refCount[0] > 1)
 					m_refCount[0]--;
+				else
+					LVG_LOGF("error: un-expected refcount %d, memory leak", m_refCount[0]);
 			}
 			m_width = 0;
 			m_height = 0;
@@ -189,7 +193,7 @@ namespace lvg
 			return *this;
 		}
 
-		Image& setConstant(T val)
+		Image& setConstant(const T& val)
 		{
 			const int wc = m_width * Channels;
 			for (int y = 0; y < m_height; y++)
@@ -557,3 +561,4 @@ namespace lvg
 	typedef Image<float, 3> RgbFloatImage;
 	typedef Image<float, 4> RgbaFloatImage;
 }
+#endif

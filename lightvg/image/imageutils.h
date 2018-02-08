@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LVGIMAGEUTILS_H__
+#define __LVGIMAGEUTILS_H__
 
 #include "Image.h"
 
@@ -63,3 +64,5 @@ namespace lvg
 	// transpose
 	void imtranspose(const FloatImage& src, FloatImage& dst);
 } // lvg
+
+#endif

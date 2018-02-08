@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LVGSTRUTILS_H__
+#define __LVGSTRUTILS_H__
 
 #include "definations.h"
 #include <string>
@@ -83,3 +84,5 @@ namespace lvg
 		return s;
 	}
 }
+
+#endif

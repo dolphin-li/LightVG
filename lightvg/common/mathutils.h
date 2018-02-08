@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __LVGMATHUTILS_H__
+#define __LVGMATHUTILS_H__
 
 #include "definations.h"
-#include <eigen/Dense>
+#include "eigen/Dense"
 namespace lvg
 {
 	typedef unsigned char uchar;
@@ -59,7 +60,7 @@ namespace lvg
 	}
 
 	// treat float4 as float3 normal vector and cross
-	inline float4 crossAsNormal(float4 a, float4 b)
+	inline float4 crossAsNormal(const float4& a, const float4& b)
 	{
 		return float4(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0], 0.f);
 	}
@@ -135,3 +136,5 @@ namespace lvg
 		return cosTheta * Mat3f::Identity() + (1 - cosTheta) * r*r.transpose() + sin(theta) * S;
 	}
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LVGDEFINATIONS_H__
+#define __LVGDEFINATIONS_H__
 
 // determine which OS
 #if defined(_WIN32)
@@ -23,7 +24,11 @@
 #include <unistd.h>
 #endif
 
-#if defined(__ARM_NEON)
+#include <string>
+#include <iostream>
+#include <sstream>
+
+#if (defined(__ARM_NEON__) || (defined(__ANDROID__) && defined(__ARM_ARCH_7A__)) || defined(__aarch64__))
 #define LVG_ENABLE_NEON
 #include "intrin_neon.h"
 #endif
@@ -40,16 +45,4 @@
 // turn on this macro if you need opencv for debugging
 #define LVG_ENABLE_OPENCV_DEBUG
 
-// it seems android ndk does not support to_string()
-#ifdef __ANDROID__
-namespace std
-{
-	template <typename T>
-	std::string to_string(T value)
-	{
-		std::ostringstream os;
-		os << value;
-		return os.str();
-	}
-}
 #endif

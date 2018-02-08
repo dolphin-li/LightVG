@@ -41,8 +41,8 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-
-#pragma once
+#ifndef __LVGINTRINNEON_H__
+#define __LVGINTRINNEON_H__
 
 #include <algorithm>
 #include <stdint.h>
@@ -721,7 +721,7 @@ inline v_float32x4 v_invsqrt(const v_float32x4& x)
 #else
 inline v_float32x4 v_sqrt(const v_float32x4& x)
 {
-    float32x4_t x1 = vmaxq_f32(x.val, vdupq_n_f32(FLT_MIN));
+    float32x4_t x1 = vmaxq_f32(x.val, vdupq_n_f32(__FLT_MIN__));
     float32x4_t e = vrsqrteq_f32(x1);
     e = vmulq_f32(vrsqrtsq_f32(vmulq_f32(x1, e), e), e);
     e = vmulq_f32(vrsqrtsq_f32(vmulq_f32(x1, e), e), e);
@@ -1455,3 +1455,5 @@ static inline bool hasSIMD128()
 
 //! @endcond
 } // end namespace lvg
+
+#endif

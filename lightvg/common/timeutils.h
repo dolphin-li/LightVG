@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LVGTIMEUTILS_H__
+#define __LVGTIMEUTILS_H__
 
 #include "definations.h"
 #include "logger.h"
@@ -79,7 +80,7 @@ namespace lvg
 			__lvg_static_tic_recorder_.pop();
 			if (isInfoShow) 
 			{
-				logging(LogLevel::LVG_LOG_VERBOSE, label, std::to_string(sc).c_str());
+				logging(lvg::LVG_LOG_VERBOSE, label, "%f seconds", (float)sc);
 			}
 		}
 		return sc;
@@ -133,7 +134,7 @@ if (++lvg_debug_cnt == lvg_debug_frames)\
 }
 
 #define TIME_ACCUMULATE_PRINT(msg, id)\
-LVG_LOG(lvg::LogLevel::LVG_LOG_DEBUG, (msg + std::string(", ") + std::to_string(lvg_debug_sum[id])).c_str())
+LVG_LOGW("%s, %f ms", msg, lvg_debug_sum[id]*1000.f)
 
 #else
 #define LVG_TIC() 0
@@ -143,4 +144,6 @@ LVG_LOG(lvg::LogLevel::LVG_LOG_DEBUG, (msg + std::string(", ") + std::to_string(
 #define TIME_ACCUMULATE_END(id) 0
 #define TIME_ACCUMULATE_RELEASE(function) 0
 #define TIME_ACCUMULATE_PRINT(msg, id) 0
+#endif
+
 #endif

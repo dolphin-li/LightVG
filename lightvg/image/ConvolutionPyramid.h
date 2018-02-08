@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __LVGCONVOLUTIONPYRAMID_H__
+#define __LVGCONVOLUTIONPYRAMID_H__
+
 #include "Image.h"
 namespace lvg
 {
@@ -78,3 +80,5 @@ namespace lvg
 		static float ComputeMean(const FloatImage& I);
 	};
 }
+
+#endif

@@ -252,7 +252,7 @@ namespace lvg
 		if (W != B.width() || H != B.height())
 		{
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
-			throw std::exception();
+			return;
 		}
 
 #ifdef CV_SIMD128
@@ -288,7 +288,7 @@ namespace lvg
 		if (W != B.width() || H != B.height())
 		{
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
-			throw std::exception();
+			return;
 		}
 
 #ifdef CV_SIMD128
@@ -324,7 +324,7 @@ namespace lvg
 		if (W != B.width() || H != B.height())
 		{
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
-			throw std::exception();
+			return;
 		}
 #ifdef CV_SIMD128
 		v_float32x4 valpha, vbeta, va, vb;
@@ -359,7 +359,7 @@ namespace lvg
 		if (W != B.width() || H != B.height())
 		{
 			LVG_LOG(LVG_LOG_ERROR, "size mis-matched");
-			throw std::exception();
+			return;
 		}
 #ifdef CV_SIMD128
 		v_float32x4 valpha, vbeta, va, vb;
@@ -391,7 +391,7 @@ namespace lvg
 		if (imDst.memoryOverlap(imSrc))
 		{
 			LVG_LOG(LVG_LOG_ERROR, "does not support inplace operation");
-			throw std::exception();
+			return;
 		}
 
 		const int lW = imSrc.width() / 2;
@@ -427,7 +427,7 @@ namespace lvg
 		if (dW / 2 != sW || dH / 2 != sH)
 		{
 			LVG_LOG(LVG_LOG_ERROR, "illegal size");
-			throw std::exception();
+			return;
 		}
 
 		for (int y = 0; y < sH; y++)

@@ -42,7 +42,8 @@
 //
 //M*/
 
-#pragma once
+#ifndef __LVGINTRINSSE_H__
+#define __LVGINTRINSSE_H__
 
 #include <algorithm>
 #include <stdint.h>
@@ -2177,3 +2178,5 @@ static inline bool hasSIMD128()
 }
 
 } // end namespace lvg
+
+#endif
