@@ -21,11 +21,11 @@ int main()
 		imwrite("result_aref.png", src);
 		src.convertTo(srcf);
 
-		const int ksize = 15;
+		const int ksize = 3;
 
 		lvg::tic();
 		for(int k = 0; k < 100; k++)
-			boxFilter(srcf, srcf, ksize, &workBuf);
+			boxFilter(src, src, ksize, &workBuf);
 		lvg::toc();
 
 		imwrite("result.png", srcf);

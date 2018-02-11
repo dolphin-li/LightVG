@@ -98,6 +98,17 @@ namespace lvg
 			{
 				for (i = 0; i < cn; i++)
 					D[i] = (ST)S[i] + (ST)2 * (ST)S[i + cn];
+				for (; i < width - 3; i += 8)
+				{
+					D[i + 0] = (ST)S[i + 0] + (ST)S[i + 0 + cn] + (ST)S[i + 0 - cn];
+					D[i + 1] = (ST)S[i + 1] + (ST)S[i + 1 + cn] + (ST)S[i + 1 - cn];
+					D[i + 2] = (ST)S[i + 2] + (ST)S[i + 2 + cn] + (ST)S[i + 2 - cn];
+					D[i + 3] = (ST)S[i + 3] + (ST)S[i + 3 + cn] + (ST)S[i + 3 - cn];
+					D[i + 4] = (ST)S[i + 4] + (ST)S[i + 4 + cn] + (ST)S[i + 4 - cn];
+					D[i + 5] = (ST)S[i + 5] + (ST)S[i + 5 + cn] + (ST)S[i + 5 - cn];
+					D[i + 6] = (ST)S[i + 6] + (ST)S[i + 6 + cn] + (ST)S[i + 6 - cn];
+					D[i + 7] = (ST)S[i + 7] + (ST)S[i + 7 + cn] + (ST)S[i + 7 - cn];
+				}
 				for (; i < width - 3; i += 4)
 				{
 					D[i + 0] = (ST)S[i + 0] + (ST)S[i + 0 + cn] + (ST)S[i + 0 - cn];
