@@ -17,17 +17,15 @@ int main()
 		lvg::ByteImage src;
 		lvg::ByteImage workBuf;
 		lvg::FloatImage srcf;
-		lvg::imread("debug.jpg", src);
+		lvg::imread("r.jpg", src);
 		imwrite("result_aref.png", src);
-		src.convertTo(srcf);
-
-		const int ksize = 3;
+		src.convertTo(srcf, 1.f / 255.f);
 
 		lvg::tic();
-		for(int k = 0; k < 100; k++)
-			boxFilter(src, src, ksize, &workBuf);
+		lvg::fastGuidedFilter(srcf, srcf, 4, 0.01f, 4);
 		lvg::toc();
 
+		srcf *= 255.f;
 		imwrite("result.png", srcf);
 	}
 #endif

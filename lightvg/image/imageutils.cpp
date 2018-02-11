@@ -1,6 +1,7 @@
 #include "imageutils.h"
 #include "lightvg/common/logger.h"
 #include "convhelper.h"
+#include "opencvdebug.h"
 namespace lvg
 {
 	void gaussianBlur_7x7(const ByteImage& src, ByteImage& dst, std::vector<int>* workBuffer)
@@ -1899,6 +1900,92 @@ namespace lvg
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	void fastGuidedFilter(FloatImage& img, const FloatImage& guideImg, int r, float eps, int s)
 	{
-		LVG_LOGE("not implemented");
+		if (s <= 0)
+			s = r / 4;
+		const int r_s = r / s;
+		const int ksize = r_s * 2 + 1;
+		const int W = img.width(), H = img.height();
+		const int W_s = W / s, H_s = H / s;
+		if (W != guideImg.width() || H != guideImg.height())
+		{
+			LVG_LOGE("image and guide size not matched: (%d, %d) != (%d, %d)",
+				W, H, guideImg.width(), guideImg.height());
+			return;
+		}
+		const FloatImage& I = guideImg;
+		FloatImage& P = img;
+		FloatImage I_s = imresize(I, W_s, H_s);
+		FloatImage P_s = imresize(P, W_s, H_s);
+
+		FloatImage mean_I, mean_P;
+		FloatImage mean_IP = I_s.clone();
+		mean_IP *= P_s;
+
+		ByteImage workBuffer;
+		boxFilter(I_s, mean_I, ksize, &workBuffer);
+		boxFilter(P_s, mean_P, ksize, &workBuffer);
+		boxFilter(mean_IP, mean_IP, ksize, &workBuffer);
+
+		FloatImage cov_IP;
+		cov_IP.create(W_s, H_s);
+		for (int y = 0; y < H_s; y++)
+		{
+			float* pCov = cov_IP.rowPtr(y);
+			const float* pI = mean_I.rowPtr(y);
+			const float* pP = mean_P.rowPtr(y);
+			const float* pIP = mean_IP.rowPtr(y);
+			for (int x = 0; x < W_s; x++)
+				pCov[x] = pIP[x] - pI[x] * pP[x];
+		} // y
+
+		FloatImage mean_II = I_s.clone();
+		mean_II *= I_s;
+		boxFilter(mean_II, mean_II, ksize, &workBuffer);
+
+		FloatImage val_I, A, B;
+		val_I.create(W_s, H_s);
+		A.create(W_s, H_s);
+		B.create(W_s, H_s);
+		for (int y = 0; y < H_s; y++)
+		{
+			const float* pI = mean_I.rowPtr(y);
+			const float* pP = mean_P.rowPtr(y);
+			const float* pCov = cov_IP.rowPtr(y);
+			float* pII = mean_II.rowPtr(y);
+			float* pVal = val_I.rowPtr(y);
+			float* pA = A.rowPtr(y);
+			float* pB = B.rowPtr(y);
+			for (int x = 0; x < W_s; x++)
+			{
+				const float vI = pI[x];
+				pVal[x] = pII[x] - vI * vI;
+				pA[x] = pCov[x] / (pVal[x] + eps);
+				pB[x] = pP[x] - pA[x] * pI[x];
+			} // x
+		} // y
+
+		boxFilter(A, A, ksize, &workBuffer);
+		boxFilter(B, B, ksize, &workBuffer);
+		A = imresize(A, W, H);
+		B = imresize(B, W, H);
+
+		for (int y = 0; y < H; y++)
+		{
+			const float* pA = A.rowPtr(y);
+			const float* pB = B.rowPtr(y);
+			const float* pI = I.rowPtr(y);
+			float* pImg = img.rowPtr(y);
+			int x = 0;
+#ifdef CV_SIMD128
+			for (; x < W - 3; x += 4)
+			{
+				lvg::v_store(pImg + x, lvg::v_muladd(lvg::v_load(pA+x), lvg::v_load(pI + x), lvg::v_load(pB + x)));
+			} // x
+#endif
+			for (; x < W; x++)
+			{
+				pImg[x] = pA[x] * pI[x] + pB[x];
+			} // x
+		} // y
 	}
 }

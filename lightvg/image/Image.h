@@ -152,6 +152,26 @@ namespace lvg
 				}\
 			}\
 			return *this; \
+		}\
+		Image& operator op (const Image& B)\
+		{\
+			if (!sameShape(B))\
+			{ \
+				LVG_LOGE("size not matched: (%d, %d) != (%d, %d)", m_width, m_height, B.width(), B.height()); \
+			} \
+			for (int y = 0; y < m_height; y++)\
+			{\
+				T* pSrcRow = rowPtr(y); \
+				const T* pBRow = B.rowPtr(y); \
+				for (int x = 0; x < m_width; x++)\
+				{\
+					for (int c = 0; c < Channels; c++)\
+						pSrcRow[c] op pBRow[c]; \
+						pSrcRow += Channels; \
+						pBRow += Channels; \
+				}\
+			}\
+				return *this; \
 		}
 		UNARY_OP_EQ(*= );
 		UNARY_OP_EQ(/= );

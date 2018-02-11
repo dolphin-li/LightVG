@@ -37,9 +37,9 @@ namespace lvg
 	// guided image filter of Kaiming, details see the original paper
 	// img: input/output image
 	// guideImg: the guidence image
-	// r: local window radius
-	// eps: regularization param
-	// s: subsampling ratio to speed up. try r or r/4, if s < 0, then s=r
+	// r: local window radius, similar with the spatial threshold of bilateral
+	// eps: similar with the color threshold of bilateral, try 0.04 or 0.01
+	// s: subsampling ratio to speed up. try r or r/4, if s < 0, then s=r/4
 	void fastGuidedFilter(FloatImage& img, const FloatImage& guideImg, int r, float eps, int s = -1);
 
 	// similar with Matlab's bwdist()

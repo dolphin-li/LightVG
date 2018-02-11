@@ -97,8 +97,8 @@ namespace lvg
 			if (ksize == 3)
 			{
 				for (i = 0; i < cn; i++)
-					D[i] = (ST)S[i] + (ST)2 * (ST)S[i + cn];
-				for (; i < width - 3; i += 8)
+					D[i] = (ST)3 * (ST)S[i];
+				for (; i < width - 7; i += 8)
 				{
 					D[i + 0] = (ST)S[i + 0] + (ST)S[i + 0 + cn] + (ST)S[i + 0 - cn];
 					D[i + 1] = (ST)S[i + 1] + (ST)S[i + 1 + cn] + (ST)S[i + 1 - cn];
@@ -117,21 +117,21 @@ namespace lvg
 					D[i + 3] = (ST)S[i + 3] + (ST)S[i + 3 + cn] + (ST)S[i + 3 - cn];
 				}
 				for (; i < width; i ++)
-					D[i] = (ST)S[i] + (ST)S[i + cn] + (ST)S[i - cn];
+					D[i] = (ST)2 * (ST)S[i] + (ST)S[i + cn];
 				for (; i < width + cn; i++)
-					D[i] = (ST)S[i] + (ST)2 * (ST)S[i - cn];	
+					D[i] = (ST)3 * (ST)S[i];	
 			}
 			else if (cn == 1)
 			{
 				ST s = 0;
 				for (i = 1; i <= kL_cn; i++)
-					s += (ST)S[i];
+					s += (ST)S[0];
 				for (i = 0; i <= kR_cn; i++)
 					s += (ST)S[i];
 				D[0] = s;
 				for (i = 0; i < kL_cn; i++)
 				{
-					s += (ST)S[i + kR_cn + 1] - (ST)S[kL_cn + i];
+					s += (ST)S[i + kR_cn + 1] - (ST)S[0];
 					D[i + 1] = s;
 				}
 				for (; i < width - kR_cn - 3; i+= 4)
@@ -152,7 +152,7 @@ namespace lvg
 				}
 				for (; i < width; i++)
 				{
-					s += (ST)S[i - kR_cn + 1] - (ST)S[i - kL_cn];
+					s += (ST)S[width] - (ST)S[i - kL_cn];
 					D[i + 1] = s;
 				}
 			}
@@ -161,9 +161,9 @@ namespace lvg
 				ST s0 = 0, s1 = 0, s2 = 0;
 				for (i = 3; i <= kL_cn; i += 3)
 				{
-					s0 += (ST)S[i];
-					s1 += (ST)S[i + 1];
-					s2 += (ST)S[i + 2];
+					s0 += (ST)S[0];
+					s1 += (ST)S[1];
+					s2 += (ST)S[2];
 				}
 				for (i = 0; i <= kR_cn; i += 3)
 				{
@@ -176,9 +176,9 @@ namespace lvg
 				D[2] = s2;
 				for (i = 0; i < kL_cn; i += 3)
 				{
-					s0 += (ST)S[i + kR_cn + 3] - (ST)S[kL_cn + i];
-					s1 += (ST)S[i + kR_cn + 4] - (ST)S[kL_cn + i + 1];
-					s2 += (ST)S[i + kR_cn + 5] - (ST)S[kL_cn + i + 2];
+					s0 += (ST)S[i + kR_cn + 3] - (ST)S[0];
+					s1 += (ST)S[i + kR_cn + 4] - (ST)S[1];
+					s2 += (ST)S[i + kR_cn + 5] - (ST)S[2];
 					D[i + 3] = s0;
 					D[i + 4] = s1;
 					D[i + 5] = s2;
@@ -221,9 +221,9 @@ namespace lvg
 				}
 				for (; i < width; i += 3)
 				{
-					s0 += (ST)S[i - kR_cn + 3] - (ST)S[i - kL_cn];
-					s1 += (ST)S[i - kR_cn + 4] - (ST)S[i - kL_cn + 1];
-					s2 += (ST)S[i - kR_cn + 5] - (ST)S[i - kL_cn + 2];
+					s0 += (ST)S[width + 0] - (ST)S[i - kL_cn];
+					s1 += (ST)S[width + 1] - (ST)S[i - kL_cn + 1];
+					s2 += (ST)S[width + 2] - (ST)S[i - kL_cn + 2];
 					D[i + 3] = s0;
 					D[i + 4] = s1;
 					D[i + 5] = s2;
@@ -234,10 +234,10 @@ namespace lvg
 				ST s0 = 0, s1 = 0, s2 = 0, s3 = 0;
 				for (i = 4; i <= kL_cn; i += 4)
 				{
-					s0 += (ST)S[i];
-					s1 += (ST)S[i + 1];
-					s2 += (ST)S[i + 2];
-					s3 += (ST)S[i + 3];
+					s0 += (ST)S[0];
+					s1 += (ST)S[1];
+					s2 += (ST)S[2];
+					s3 += (ST)S[3];
 				}
 				for (i = 0; i <= kR_cn; i += 4)
 				{
@@ -252,10 +252,10 @@ namespace lvg
 				D[3] = s3;
 				for (i = 0; i < kL_cn; i += 4)
 				{
-					s0 += (ST)S[i + kR_cn + 4] - (ST)S[kL_cn + i];
-					s1 += (ST)S[i + kR_cn + 5] - (ST)S[kL_cn + i + 1];
-					s2 += (ST)S[i + kR_cn + 6] - (ST)S[kL_cn + i + 2];
-					s3 += (ST)S[i + kR_cn + 7] - (ST)S[kL_cn + i + 3];
+					s0 += (ST)S[i + kR_cn + 4] - (ST)S[0];
+					s1 += (ST)S[i + kR_cn + 5] - (ST)S[1];
+					s2 += (ST)S[i + kR_cn + 6] - (ST)S[2];
+					s3 += (ST)S[i + kR_cn + 7] - (ST)S[3];
 					D[i + 4] = s0;
 					D[i + 5] = s1;
 					D[i + 6] = s2;
@@ -309,10 +309,10 @@ namespace lvg
 				}
 				for (; i < width; i += 4)
 				{
-					s0 += (ST)S[i - kR_cn + 4] - (ST)S[i - kL_cn];
-					s1 += (ST)S[i - kR_cn + 5] - (ST)S[i - kL_cn + 1];
-					s2 += (ST)S[i - kR_cn + 6] - (ST)S[i - kL_cn + 2];
-					s3 += (ST)S[i - kR_cn + 7] - (ST)S[i - kL_cn + 3];
+					s0 += (ST)S[width + 0] - (ST)S[i - kL_cn];
+					s1 += (ST)S[width + 1] - (ST)S[i - kL_cn + 1];
+					s2 += (ST)S[width + 2] - (ST)S[i - kL_cn + 2];
+					s3 += (ST)S[width + 3] - (ST)S[i - kL_cn + 3];
 					D[i + 4] = s0;
 					D[i + 5] = s1;
 					D[i + 6] = s2;
@@ -1456,11 +1456,9 @@ namespace lvg
 		for (int y = 0; y < H; y++)
 			rowSum((uchar*)src.rowPtr(y), workBuffer->rowPtr(y + L), W, C);
 		for (int y = 0; y <= L; y++)
-			memcpy(workBuffer->rowPtr(y), workBuffer->rowPtr(std::min(H - 1, 2 * L - y)),
-				sizeof(SumDataType)*W*Channels);
+			memcpy(workBuffer->rowPtr(y), workBuffer->rowPtr(L), sizeof(SumDataType)*W*Channels);
 		for (int y = 0; y <= R; y++)
-			memcpy(workBuffer->rowPtr(y + H + L), workBuffer->rowPtr(std::max(0, H + L - 2 - y)),
-				sizeof(SumDataType)*W*Channels);
+			memcpy(workBuffer->rowPtr(y + H + L), workBuffer->rowPtr(H + L - 1), sizeof(SumDataType)*W*Channels);
 
 		// perform column filter
 		colSum(workBuffer->data(), workBuffer->stride(), (uchar*)dst.data(), dst.stride(), H, W*C);
