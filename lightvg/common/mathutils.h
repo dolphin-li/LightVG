@@ -26,6 +26,7 @@ namespace lvg
 	typedef Eigen::Vector3d double3;
 	typedef Eigen::Vector4d double4;
 	typedef Eigen::Vector2i Point;
+	typedef Eigen::Vector2i Size;
 	typedef Eigen::Matrix<uchar, 2, 1> uchar2;
 	typedef Eigen::Matrix<uchar, 3, 1> uchar3;
 	typedef Eigen::Matrix<uchar, 4, 1> uchar4;

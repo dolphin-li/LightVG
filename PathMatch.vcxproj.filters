@@ -41,6 +41,9 @@
     <ClCompile Include="lightvg\patchmatch\PatchMatchCompletion.cpp">
       <Filter>lightvg\patchmatch</Filter>
     </ClCompile>
+    <ClCompile Include="lightvg\image\boxFilter.cpp">
+      <Filter>lightvg\image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LightVG\Image\ConvolutionPyramid.h">

@@ -156,6 +156,7 @@
     <ClCompile Include="LightVG\Image\ConvolutionPyramid.cpp" />
     <ClCompile Include="lightvg\image\imageutils.cpp" />
     <ClCompile Include="lightvg\image\opencvdebug.cpp" />
+    <ClCompile Include="lightvg\image\boxFilter.cpp" />
     <ClCompile Include="lightvg\patchmatch\PatchMatchCompletion.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

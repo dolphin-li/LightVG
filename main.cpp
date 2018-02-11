@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include "lightvg/LightVG.hpp"
-using namespace lvg;
+#include <opencv2/opencv.hpp>
 
-#define DEBUG_BOUNDARY_INTERPOLATE
+#define DEBUG_GUIDED_FILTER
+//#define DEBUG_BOUNDARY_INTERPOLATE
 //#define DEBUG_POISSON
 //#define DEBUG_RESIZE
 //#define DEBUG_CONVERT_COLOR
@@ -11,6 +12,25 @@ using namespace lvg;
 
 int main()
 {
+#ifdef DEBUG_GUIDED_FILTER
+	{
+		lvg::ByteImage src;
+		lvg::ByteImage workBuf;
+		lvg::FloatImage srcf;
+		lvg::imread("debug.jpg", src);
+		imwrite("result_aref.png", src);
+		src.convertTo(srcf);
+
+		const int ksize = 15;
+
+		lvg::tic();
+		for(int k = 0; k < 100; k++)
+			boxFilter(srcf, srcf, ksize, &workBuf);
+		lvg::toc();
+
+		imwrite("result.png", srcf);
+	}
+#endif
 #ifdef DEBUG_BOUNDARY_INTERPOLATE
 	{
 		RgbImage src;

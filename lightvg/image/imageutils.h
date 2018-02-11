@@ -27,6 +27,21 @@ namespace lvg
 	void minFilter(const ByteImage& src, ByteImage& dst, int nKernel);
 	void minFilter(const IntImage& src, IntImage& dst, int nKernel);
 
+	void boxFilter(const ByteImage& src, ByteImage& dst, int nKernel, ByteImage* workBuffer=nullptr);
+	void boxFilter(const RgbImage& src, RgbImage& dst, int nKernel, ByteImage* workBuffer = nullptr);
+	void boxFilter(const RgbaImage& src, RgbaImage& dst, int nKernel, ByteImage* workBuffer = nullptr);
+	void boxFilter(const FloatImage& src, FloatImage& dst, int nKernel, ByteImage* workBuffer = nullptr);
+	void boxFilter(const RgbFloatImage& src, RgbFloatImage& dst, int nKernel, ByteImage* workBuffer = nullptr);
+	void boxFilter(const RgbaFloatImage& src, RgbaFloatImage& dst, int nKernel, ByteImage* workBuffer = nullptr);
+
+	// guided image filter of Kaiming, details see the original paper
+	// img: input/output image
+	// guideImg: the guidence image
+	// r: local window radius
+	// eps: regularization param
+	// s: subsampling ratio to speed up. try r or r/4, if s < 0, then s=r
+	void fastGuidedFilter(FloatImage& img, const FloatImage& guideImg, int r, float eps, int s = -1);
+
 	// similar with Matlab's bwdist()
 	// for mask > 128, compute the pixel distances to the boundary (mask < 128)
 	FloatImage bwdist(const ByteImage& imMask);
